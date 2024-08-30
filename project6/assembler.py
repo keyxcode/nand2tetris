@@ -1,5 +1,5 @@
 import sys
-from typing import Dict
+from typing import Dict, Optional
 
 
 def init_symbol_table() -> Dict[str, int]:
@@ -49,7 +49,7 @@ class Code:
             "D|M": "1010101",
         }
         self.dest_dict = {
-            "null": "000",
+            None: "000",
             "M": "001",
             "D": "010",
             "MD": "011",
@@ -59,7 +59,7 @@ class Code:
             "AMD": "111",
         }
         self.jump_dict = {
-            "null": "000",
+            None: "000",
             "JGT": "001",
             "JEQ": "010",
             "JGE": "011",
@@ -77,7 +77,7 @@ class Code:
         elif field == 2:  # jump
             return self.jump_dict[inst]
         else:
-            raise KeyError("Invalid instruction")
+            raise KeyError("Invalid instruction {inst}")
 
 
 def parse(in_filename: str, out_filename: str) -> None:
@@ -90,24 +90,41 @@ def parse(in_filename: str, out_filename: str) -> None:
 
     # enter (program’s labels : their ROM addresses) to the symbol table???
 
+    def get_c_parts(instruction: str) -> Dict[Optional[str], str]:
+        # at index: 0 is comp, 1 is dest, 2 is jump
+        parts = [None] * 3
+
+        # split left part : (maybe) jump
+        split1 = instruction.split(";")
+        if len(split1) == 2:
+            parts[2] = split1[1]
+
+        # split (maybe) dest : comp
+        split2 = split1[0].split("=")
+        if len(split2) == 2:
+            parts[1] = split2[0]
+
+        parts[0] = split2[-1]
+        return parts
+
     code = Code()
 
     with open(in_filename, "r") as infile, open(out_filename, "w") as outfile:
         for line in infile:
-            stripped_line = line.strip()
-            if stripped_line == "":
+            line = line.strip()
+            if line == "" or line.startswith("//"):
                 continue
 
-            if stripped_line[0] == "@":  # A instruction
-                out_line = "0" + str(bin(int(stripped_line[1:])))
+            if line[0] == "@":  # A instruction
+                out_line = "0" + format(int(line[1:]), f"015b")
+            else:  # C instruction
+                parts = get_c_parts(line)
+                comp = code.translate(parts[0], 0)
+                dest = code.translate(parts[1], 1)
+                jump = code.translate(parts[2], 2)
+                out_line = "111" + comp + dest + jump
             # elif stripped_line[0] == "(":  # L pseudo instruction
             #     pass  # ignore for now
-            else:  # C instruction
-
-                comp = code.translate(comp, 0)
-                dest = code.translate(comp, 1)
-                jump = code.translate(comp, 2)
-                out_line = "111" + comp + dest + jump
 
             outfile.write(out_line + "\n")
 
