@@ -17,7 +17,13 @@ def to_binary(value: int, bits: int = 15) -> str:
 
 
 def init_symbol_table() -> Dict[str, str]:
-    symbol_table = {
+    """
+    Create a symbol table with Hack predefined symbols and their 15-bit binary values.
+
+    Returns:
+        Dict[str, str]: Dictionary of symbol names and their binary string representations.
+    """
+    return {
         "SP": to_binary(0),
         "LCL": to_binary(1),
         "ARG": to_binary(2),
@@ -27,7 +33,6 @@ def init_symbol_table() -> Dict[str, str]:
         "SCREEN": to_binary(16384),
         "KBD": to_binary(24576),
     }
-    return symbol_table
 
 
 class Code:
