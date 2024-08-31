@@ -109,22 +109,31 @@ def parse(in_filename: str, out_filename: str, symbol_table: Dict[str, str]) -> 
 
     code = Code()
 
+    base_memory = 16
     with open(in_filename, "r") as infile, open(out_filename, "w") as outfile:
         for line in infile:
             line = line.strip()
-            if line == "" or line.startswith("//"):
+            if line == "" or line[0] in "/(":
                 continue
 
             if line[0] == "@":  # A instruction
-                out_line = "0" + format(int(line[1:]), f"015b")
+                address = line[1:]
+                try:
+                    out_line = "0" + format(int(address), f"015b")
+                except ValueError:
+                    if address in symbol_table:
+                        out_line = "0" + symbol_table[address]
+                    else:
+                        symbol_table[address] = format(int(base_memory), f"015b")
+                        out_line = "0" + symbol_table[address]
+                        base_memory += 1
+
             else:  # C instruction
                 parts = get_c_parts(line)
                 comp = code.translate(parts[0], 0)
                 dest = code.translate(parts[1], 1)
                 jump = code.translate(parts[2], 2)
                 out_line = "111" + comp + dest + jump
-            # elif stripped_line[0] == "(":  # L pseudo instruction
-            #     pass  # ignore for now
 
             outfile.write(out_line + "\n")
 
@@ -160,8 +169,7 @@ def main():
 
     symbol_table = init_symbol_table()
     read_label_symbols(in_filename, symbol_table)
-    print(symbol_table)
-    # parse(in_filename, out_filename)
+    parse(in_filename, out_filename, symbol_table)
 
 
 if __name__ == "__main__":
