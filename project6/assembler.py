@@ -68,7 +68,7 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
             symbol_table[label] = to_binary(line_num + 1)
 
 
-class Code:
+class CTranslator:
     """
     A class to handle the translation of Hack assembly C-instruction fields to binary code.
 
@@ -182,7 +182,7 @@ class Assembler:
 
     def __init__(self, symbol_table: Dict[str, str]):
         self.symbol_table = symbol_table
-        self.code = Code()
+        self.c_translator = CTranslator()
         self.base_memory = 16
 
     def parse(self, in_filename: str, out_filename: str) -> None:
@@ -245,7 +245,7 @@ class Assembler:
         # fields is in the format of [comp, dest, jump]
         fields = self._get_c_fields(line)
         translated_fields = [
-            self.code.translate(inst, i) for i, inst in enumerate(fields)
+            self.c_translator.translate(inst, i) for i, inst in enumerate(fields)
         ]
         out_line = "111" + "".join(translated_fields)
 
