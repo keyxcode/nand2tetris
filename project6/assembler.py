@@ -35,6 +35,39 @@ def init_symbol_table() -> Dict[str, str]:
     }
 
 
+def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
+    """
+    Parses label symbols from an assembly file and updates the symbol table.
+
+    Identifies label lines (lines that start with '(' and end with ')'), and maps each label to its corresponding ROM address.
+    The ROM address is the number of the line of code right after the label.
+
+    Args:
+        filename (str): Path to the assembly file.
+        symbol_table (Dict[str, str]): Dictionary to update with labels and their binary addresses.
+
+    Returns:
+        None: Updates `symbol_table` in place.
+    """
+    # starts with -1 so that the first line of code is registered as 0
+    line_num = -1
+
+    with open(filename, "r") as file:
+        for line in file:
+            line = line.strip()
+            if line == "" or line.startswith("//"):
+                continue
+
+            # valid assembly code
+            if not line.startswith("("):
+                line_num += 1
+                continue
+
+            # a label
+            label = line.strip("()")
+            symbol_table[label] = to_binary(line_num + 1)
+
+
 class Code:
     def __init__(self):
         self.comp_dict = {
@@ -155,27 +188,6 @@ def parse(in_filename: str, out_filename: str, symbol_table: Dict[str, str]) -> 
                 out_line = "111" + comp + dest + jump
 
             outfile.write(out_line + "\n")
-
-
-def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
-    # keep track of valid code line number
-    # each time encounter a label line (starts with ( ), enter (program’s labels : next line count aka ROM address) to the symbol table
-    line_num = -1
-
-    with open(filename, "r") as file:
-        for line in file:
-            line = line.strip()
-            if line == "" or line.startswith("//"):
-                continue
-
-            # valid assembly code
-            if not line.startswith("("):
-                line_num += 1
-                continue
-
-            # a label
-            label = line.strip("()")
-            symbol_table[label] = to_binary(line_num + 1)
 
 
 def main():
