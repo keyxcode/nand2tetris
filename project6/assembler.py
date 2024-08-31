@@ -244,12 +244,11 @@ class Assembler:
         """
         # fields is in the format of [comp, dest, jump]
         fields = self._get_c_fields(line)
+        translated_fields = [
+            self.code.translate(inst, i) for i, inst in enumerate(fields)
+        ]
+        out_line = "111" + "".join(translated_fields)
 
-        comp = self.code.translate(fields[0], 0)
-        dest = self.code.translate(fields[1], 1)
-        jump = self.code.translate(fields[2], 2)
-
-        out_line = "111" + comp + dest + jump
         outfile.write(out_line + "\n")
 
     def _get_c_fields(self, instruction: str) -> List[str]:
