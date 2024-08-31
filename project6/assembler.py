@@ -69,6 +69,21 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
 
 
 class Code:
+    """
+    A class to handle the translation of Hack assembly C instruction fields to binary code.
+
+    Attributes:
+        comp_dict (dict): A dictionary mapping computation mnemonics to their binary codes.
+        dest_dict (dict): A dictionary mapping destination mnemonics to their binary codes.
+        jump_dict (dict): A dictionary mapping jump mnemonics to their binary codes.
+
+    Methods:
+        translate(inst: str, field: int) -> str
+
+    Raises:
+        KeyError: If the provided instruction or field is invalid.
+    """
+
     def __init__(self):
         self.comp_dict = {
             "0": "0101010",
@@ -122,11 +137,28 @@ class Code:
         }
 
     def translate(self, inst: str, field: int) -> str:
-        if field == 0:  # comp
+        """
+        Translates a Hack assembly C instruction field to its binary representation.
+
+        Args:
+            inst (str): The C instruction field (e.g., "D", "M", "JEQ").
+            field (int): The type of field to translate:
+                - 0: comp
+                - 1: dest
+                - 2: jump
+
+        Returns:
+            str: The binary representation of the instruction component.
+
+        Raises:
+            KeyError: If the instruction component or field is invalid.
+        """
+
+        if field == 0:
             return self.comp_dict[inst]
-        elif field == 1:  # dest
+        elif field == 1:
             return self.dest_dict[inst]
-        elif field == 2:  # jump
+        elif field == 2:
             return self.jump_dict[inst]
         else:
             raise KeyError("Invalid instruction {inst}")
@@ -143,6 +175,7 @@ def parse(in_filename: str, out_filename: str, symbol_table: Dict[str, str]) -> 
     # - write each translated line to out - done
 
     def get_c_parts(instruction: str) -> Dict[Optional[str], str]:
+        # The assembly C instruction in the format of dest=comp;jump where dest and jump are optional.
         # at index: 0 is comp, 1 is dest, 2 is jump
         parts = [None] * 3
 
