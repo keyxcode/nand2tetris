@@ -2,16 +2,30 @@ import sys
 from typing import Dict, Optional
 
 
+def to_binary(value: int, bits: int = 15) -> str:
+    """
+    Convert an base-10 integer to a binary string with a specified number of bits.
+
+    Args:
+        value (int): The integer to convert.
+        bits (int, optional): The number of bits for the binary representation. Defaults to 15 to suit Hack machine language address width.
+
+    Returns:
+        str: The binary string representation of the integer, zero-padded to the specified number of bits.
+    """
+    return format(value, f"0{bits}b")
+
+
 def init_symbol_table() -> Dict[str, str]:
     symbol_table = {
-        "SP": format(0, f"015b"),
-        "LCL": format(1, f"015b"),
-        "ARG": format(2, f"015b"),
-        "THIS": format(3, f"015b"),
-        "THAT": format(4, f"015b"),
-        **{("R" + str(i)): format(i, f"015b") for i in range(16)},
-        "SCREEN": format(16384, f"015b"),
-        "KBD": format(24576, f"015b"),
+        "SP": to_binary(0),
+        "LCL": to_binary(1),
+        "ARG": to_binary(2),
+        "THIS": to_binary(3),
+        "THAT": to_binary(4),
+        **{("R" + str(i)): to_binary(i) for i in range(16)},
+        "SCREEN": to_binary(16384),
+        "KBD": to_binary(24576),
     }
     return symbol_table
 
@@ -119,12 +133,12 @@ def parse(in_filename: str, out_filename: str, symbol_table: Dict[str, str]) -> 
             if line[0] == "@":  # A instruction
                 address = line[1:]
                 try:
-                    out_line = "0" + format(int(address), f"015b")
+                    out_line = "0" + to_binary(int(address))
                 except ValueError:
                     if address in symbol_table:
                         out_line = "0" + symbol_table[address]
                     else:
-                        symbol_table[address] = format(int(base_memory), f"015b")
+                        symbol_table[address] = to_binary(int(base_memory))
                         out_line = "0" + symbol_table[address]
                         base_memory += 1
 
@@ -156,7 +170,7 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
 
             # a label
             label = line.strip("()")
-            symbol_table[label] = format(line_num + 1, f"015b")
+            symbol_table[label] = to_binary(line_num + 1)
 
 
 def main():
