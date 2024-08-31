@@ -2,16 +2,16 @@ import sys
 from typing import Dict, Optional
 
 
-def init_symbol_table() -> Dict[str, int]:
+def init_symbol_table() -> Dict[str, str]:
     symbol_table = {
-        "SP": 0,
-        "LCL": 1,
-        "ARG": 2,
-        "THIS": 3,
-        "THAT": 4,
-        **{("R" + str(i)): i for i in range(16)},
-        "SCREEN": 16384,
-        "KBD": 24576,
+        "SP": "0",
+        "LCL": "1",
+        "ARG": "2",
+        "THIS": "3",
+        "THAT": "4",
+        **{("R" + str(i)): str(i) for i in range(16)},
+        "SCREEN": "16384",
+        "KBD": "24576",
     }
     return symbol_table
 
@@ -80,15 +80,15 @@ class Code:
             raise KeyError("Invalid instruction {inst}")
 
 
-def parse(in_filename: str, out_filename: str) -> None:
+def parse(in_filename: str, out_filename: str, symbol_table: Dict[str, str]) -> None:
     # go through the entire program line by line
-    # - preprocess (remove whitespace, ignore empty lines)
-    # - determine if instruction is A/C/L (pseudo label instruction)
-    # - translate A inst to 0address
-    # - translate C inst using the code module
-    # - write each translated line to out
-
-    # enter (program’s labels : their ROM addresses) to the symbol table???
+    # - preprocess (remove whitespace, ignore empty lines) - done
+    # - determine if instruction is A/C/L (pseudo label instruction) - done
+    # - translate A inst to 0address - done
+    # - each time an A-instruction with symbol is encountered, see if it's already in the symbol table
+    # - if yes, read from it, else enter (new symbol : free RAM slot (starting at address 16)) to the table
+    # - translate C inst using the code module - done
+    # - write each translated line to out - done
 
     def get_c_parts(instruction: str) -> Dict[Optional[str], str]:
         # at index: 0 is comp, 1 is dest, 2 is jump
@@ -129,13 +129,25 @@ def parse(in_filename: str, out_filename: str) -> None:
             outfile.write(out_line + "\n")
 
 
-# def second_pass(filename: str) -> None:
-#     # go through the entire program line by line and parse each instruction to binary
-#     # each time an A-instruction with symbol is encountered, see if it's already in the symbol table
-#     # if yes, read from it, else enter (new symbol : free RAM slot (starting at address 16)) to the table
-#     with open(filename, "r") as file:
-#         for line in file:
-#             pass
+def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
+    # keep track of valid code line number
+    # each time encounter a label line (starts with ( ), enter (program’s labels : next line count aka ROM address) to the symbol table
+    line_num = -1
+
+    with open(filename, "r") as file:
+        for line in file:
+            line = line.strip()
+            if line == "" or line.startswith("//"):
+                continue
+
+            # valid assembly code
+            if not line.startswith("("):
+                line_num += 1
+                continue
+
+            # a label
+            label = line.strip("()")
+            symbol_table[label] = line_num + 1
 
 
 def main():
@@ -146,12 +158,10 @@ def main():
     in_filename = sys.argv[1]
     out_filename = in_filename.split(".")[0] + ".hack"
 
-    # symbol_table = init_symbol_table()
-
-    parse(in_filename, out_filename)
-
-    # first_pass(filename)
-    # second_pass(filename)
+    symbol_table = init_symbol_table()
+    read_label_symbols(in_filename, symbol_table)
+    print(symbol_table)
+    # parse(in_filename, out_filename)
 
 
 if __name__ == "__main__":
