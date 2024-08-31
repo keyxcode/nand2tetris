@@ -4,14 +4,14 @@ from typing import Dict, Optional
 
 def init_symbol_table() -> Dict[str, str]:
     symbol_table = {
-        "SP": "0",
-        "LCL": "1",
-        "ARG": "2",
-        "THIS": "3",
-        "THAT": "4",
-        **{("R" + str(i)): str(i) for i in range(16)},
-        "SCREEN": "16384",
-        "KBD": "24576",
+        "SP": format(0, f"015b"),
+        "LCL": format(1, f"015b"),
+        "ARG": format(2, f"015b"),
+        "THIS": format(3, f"015b"),
+        "THAT": format(4, f"015b"),
+        **{("R" + str(i)): format(i, f"015b") for i in range(16)},
+        "SCREEN": format(16384, f"015b"),
+        "KBD": format(24576, f"015b"),
     }
     return symbol_table
 
@@ -147,7 +147,7 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
 
             # a label
             label = line.strip("()")
-            symbol_table[label] = line_num + 1
+            symbol_table[label] = format(line_num + 1, f"015b")
 
 
 def main():
