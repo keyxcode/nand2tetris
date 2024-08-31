@@ -287,9 +287,11 @@ def main():
     in_filename = sys.argv[1]
     out_filename = in_filename.split(".")[0] + ".hack"
 
+    # first pass: read all the label symbols and their corresponding ROM address into the symbol table
     symbol_table = init_symbol_table()
     read_label_symbols(in_filename, symbol_table)
 
+    # second pass: parse the assembly code
     assembler = Assembler(symbol_table)
     assembler.parse(in_filename, out_filename)
 
