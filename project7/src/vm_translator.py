@@ -15,34 +15,114 @@ def get_command_type(command: str) -> str:
     # dummy fall back. in the future we'll support more command types
     return ""
 
-def write_arithmetic(command: str, outfile: TextIO) -> None:
-    # hard code arithmetic = "+" to test
-    asm = f'''
-        @SP
-        M=M-1
-        A=M
-        D=M
-        A=A-1
-        M=D+M
-        A=A+1
-    '''
-    print(asm)
-    outfile.write(asm + "\n")
+def write_arithmetic(command: str, outfile: TextIO, key: int) -> None:
+    # need to support:
+    # add, sub, and, or
+    # neg, not
+    # eq, gt, lt,
+
+    command_lookups = {
+        "add": "+",
+        "sub": "-",
+        "and": "&",
+        "or": "|",
+        "neg": "-",
+        "not": "!",
+        "eq": "JEQ",
+        "gt": "JGT",
+        "lt": "JLT"
+    }
+
+    # binary arithmetic and logical
+    if command in ("add", "sub", "and", "or"):
+        command = command_lookups[command]
+
+        asm = f'''
+@SP
+M=M-1
+A=M
+D=M
+A=A-1
+M=D{command}M
+@SP
+M=M+1
+        '''
+    
+    # unary arithmetic and logical
+    elif command in ("neg", "not"):
+        command = command_lookups[command]
+
+        asm = f'''
+@SP
+M=M-1
+A=M
+M={command}M
+@SP
+M=M+1
+        '''
+
+    # top of the stack now is the difference between a - b
+    # now we need to run conditional check
+
+    # if op is eq:
+    #     if diff == 0: push true
+    #     else: push false
+    # if op is gt:
+    #     if diff > 0: push true
+    #     else: push false
+    # if op is lt:
+    #     if diff < 0: push true
+    #     else: push false
+
+    # simplified:
+    # if op is eq, use JEQ
+    # if op is gt, use JGT
+    # if op is lt, use JLT
+    # then if diff op 0: push true
+    # else: push false
+    else: # command in ("eq", "gt", "lt"):
+        command = command_lookups[command]
+
+        asm = f'''
+@SP
+M=M-1
+A=M
+D=M
+A=A-1
+
+D=M-D
+@SET_TRUE
+D;{command}
+@SP
+M=0
+@END.{key}
+0;JMP
+
+(SET_TRUE.{key})
+@SP
+M=-1
+
+(END.{key})
+@SP
+M=M+1
+        '''
+
+    outfile.write(asm)
 
 def write_push_pop(command: str, segment: str, idx: int, outfile: TextIO) -> None:
     # hard code command = "push" and segment = "constant" to test
     asm = f'''
-        @{idx}
-        D=A
-        @SP
-        A=M
-        M=D
-        D=A+1
-        @SP
-        M=D
+@{idx}
+D=A
+@SP
+A=M
+M=D
+D=A+1
+@SP
+M=D
     '''
     print(asm)
-    outfile.write(asm + "\n")
+    outfile.write(asm)
 
 def main():
     if len(sys.argv) != 2:
@@ -57,14 +137,14 @@ def main():
     vm_filenames = [os.path.join("..", "vm", vm_dirname, f) for f in os.listdir(vm_dirname) if f.endswith(".vm")]
     for vm_filename in vm_filenames:
         with open(vm_filename, "r") as infile, open(out_filename, "w") as outfile:
-            for line in infile:
+            for i, line in enumerate(infile):
                 # only parse valid code line
                 if not line.startswith("//") and line.strip():
                     command_type = get_command_type(line)
                     components = line.split()
                     if command_type == "C_ARITHMETIC":
                         arg1 = components[0]
-                        write_arithmetic(arg1, outfile)
+                        write_arithmetic(arg1, outfile, i)
                     elif command_type != "C_RETURN":
                         arg1 = components[1]
                         if command_type in ("C_PUSH", "C_POP", "C_FUNCTION", "C_CALL"):
