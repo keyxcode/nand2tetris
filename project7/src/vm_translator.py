@@ -34,7 +34,21 @@ def write_arithmetic(command: str, outfile: TextIO, key: int) -> None:
     }
 
     # binary arithmetic and logical
-    if command in ("add", "sub", "and", "or"):
+    if command == "add":
+        command = command_lookups[command]
+        asm = f'''
+@SP
+M=M-1
+A=M
+D=M
+A=A-1
+M=D+M
+D=A
+@SP
+M=D+1
+        '''
+
+    elif command in ("sub", "and", "or"):
         command = command_lookups[command]
 
         asm = f'''
@@ -43,9 +57,10 @@ M=M-1
 A=M
 D=M
 A=A-1
-M=D{command}M
+M=M{command}D
+D=A
 @SP
-M=M+1
+M=D+1
         '''
     
     # unary arithmetic and logical
@@ -57,8 +72,9 @@ M=M+1
 M=M-1
 A=M
 M={command}M
+D=A
 @SP
-M=M+1
+M=D+1
         '''
 
     # top of the stack now is the difference between a - b
@@ -85,7 +101,6 @@ M=M+1
 
         asm = f'''
 @SP
-M=M-1
 A=M
 D=M
 A=A-1
@@ -121,7 +136,6 @@ D=A+1
 @SP
 M=D
     '''
-    print(asm)
     outfile.write(asm)
 
 def main():
