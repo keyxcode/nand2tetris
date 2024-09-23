@@ -14,67 +14,84 @@ class CodeWriter:
             "lt": "JLT"
         }
 
+        #==========
+        # some useful code snippets
+        
+        # decrement the stack pointer 
+        # retrieve the value at the new top of the stack and assign it to the D register
+        self.POP_STACK_TO_D = '''
+@SP
+M=M-1
+A=M
+D=M
+'''
+
+        # decrement the stack pointer
+        # enable future M read to get the value at the new top of the stack
+        self.GET_STACK_TO_M = '''
+@SP
+M=M-1
+A=M
+'''
+
+        # increment the stack pointer
+        # get ready for future push operations
+        self.INCREMENT_STACK_POINTER = '''
+@SP
+M=M+1
+'''
+
     def write_arithmetic(self, command: str, outfile: TextIO, key: int) -> None:
+        """
+        Generates Hack assembly code for the specified arithmetic command.
+
+        Args:
+            command (str): Arithmetic command ("add", "sub", "and", "or", "neg", "not", "eq", "gt", "lt").
+            outfile (TextIO): Output file to write the assembly code.
+            key (int): Unique key for labeling conditional jumps.
+        """
+
         op = self.operator_lookup[command]
 
         if command in ("add", "and", "or"):
             asm = f'''
-@SP
-M=M-1
-A=M
-D=M
+{self.POP_STACK_TO_D}
 
-@SP
-M=M-1
-A=M
+{self.GET_STACK_TO_M}
 M=D{op}M
 
-@SP
-M=M+1
+{self.INCREMENT_STACK_POINTER}
             '''
 
-        elif command in ("sub"):
+        elif command == "sub":
             asm = f'''
-@SP
-M=M-1
-A=M
-D=M
+{self.POP_STACK_TO_D}
 
-@SP
-M=M-1
-A=M
+{self.GET_STACK_TO_M}
 M=M{op}D
 
-@SP
-M=M+1
+{self.INCREMENT_STACK_POINTER}
             '''
         
-        # unary arithmetic and logical
         elif command in ("neg", "not"):
             asm = f'''
-@SP
-M=M-1
-A=M
+{self.GET_STACK_TO_M}
 M={op}M
 
-@SP
-M=M+1
+{self.INCREMENT_STACK_POINTER}
             '''
             
         else: # command in ("eq", "gt", "lt"):
             asm = f'''
-@SP
-M=M-1
-A=M
-D=M
+{self.POP_STACK_TO_D}
 
-@SP
-M=M-1
-A=M
+{self.GET_STACK_TO_M}
 D=M-D
+// D now stores the difference between the previous two tops of the stack
+// now we need to run conditional check
 
 @SET_TRUE.{key}
-D;{op}
+D;{op} // the relation between the diff and 0 is the same as the relation between the two elements we want to compare
 @SP
 A=M
 M=0
@@ -87,28 +104,9 @@ A=M
 M=-1
 
 (END.{key})
-@SP
-M=M+1
+{self.INCREMENT_STACK_POINTER}
             '''
-        # top of the stack now is the difference between a - b
-        # now we need to run conditional check
 
-        # if op is eq:
-        #     if diff == 0: push true
-        #     else: push false
-        # if op is gt:
-        #     if diff > 0: push true
-        #     else: push false
-        # if op is lt:
-        #     if diff < 0: push true
-        #     else: push false
-
-        # simplified:
-        # if op is eq, use JEQ
-        # if op is gt, use JGT
-        # if op is lt, use JLT
-        # then if diff op 0: push true
-        # else: push false
         outfile.write(asm)
 
     def write_push_pop(self, command: str, segment: str, idx: int, outfile: TextIO) -> None:
@@ -121,7 +119,7 @@ D=A
 A=M
 M=D
 
-@SP
-M=M+1
+{self.INCREMENT_STACK_POINTER}
         '''
+
         outfile.write(asm)
