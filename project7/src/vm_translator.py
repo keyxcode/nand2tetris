@@ -1,19 +1,43 @@
 import os, sys
 from code_writer import CodeWriter
 
-def get_command_type(command: str) -> str:
-    command = command.lower()
+class VMTranslator:
+    def __init__(self, vm_filenames, out_filename):
+        self.code_writer = CodeWriter()
+        self.vm_filenames = vm_filenames
+        self.out_filename = out_filename
 
-    if command.startswith("push"):
-        return "C_PUSH"
-    if command.startswith("pop"):
-        return "C_POP"
-    if command.startswith(("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not")):
-        return "C_ARITHMETIC"
-    
-    # dummy fall back. in the future we'll support more command types
-    return ""
 
+    def get_command_type(self, command: str) -> str:
+        command = command.lower()
+
+        if command.startswith("push"):
+            return "C_PUSH"
+        if command.startswith("pop"):
+            return "C_POP"
+        if command.startswith(("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not")):
+            return "C_ARITHMETIC"
+        
+        # dummy fall back. in the future we'll support more command types
+        return ""
+
+    def parse(self) -> None:
+        for vm_filename in self.vm_filenames:
+            with open(vm_filename, "r") as infile, open(self.out_filename, "w") as outfile:
+                for i, line in enumerate(infile):
+                    if line.startswith("//") or not line.strip():
+                        continue # ignore empty line/ comment
+
+                    command_type = self.get_command_type(line)
+                    components = line.split()
+                    if command_type == "C_ARITHMETIC":
+                        arg1 = components[0]
+                        self.code_writer.write_arithmetic(arg1, outfile, i)
+                    elif command_type != "C_RETURN":
+                        arg1 = components[1]
+                        if command_type in ("C_PUSH", "C_POP", "C_FUNCTION", "C_CALL"):
+                            arg2 = components[2]
+                        self.code_writer.write_push_pop(components[0], arg1, arg2, outfile)
 
 def main():
     if len(sys.argv) != 2:
@@ -21,28 +45,17 @@ def main():
         sys.exit(1)
 
     # assume that the vm code dir is a subdir of ../vm/
+    vm_input = os.path.join("..", "vm", sys.argv[1])
     # and the output assembly will be in ../bin/
-    vm_dirname = os.path.join("..", "vm", sys.argv[1])
     out_filename = os.path.join("..", "asm", os.path.splitext(sys.argv[1])[0] + ".asm")
-
-    code_writer = CodeWriter()
-
-    vm_filenames = [os.path.join("..", "vm", vm_dirname, f) for f in os.listdir(vm_dirname) if f.endswith(".vm")]
-    for vm_filename in vm_filenames:
-        with open(vm_filename, "r") as infile, open(out_filename, "w") as outfile:
-            for i, line in enumerate(infile):
-                # only parse valid code line
-                if not line.startswith("//") and line.strip():
-                    command_type = get_command_type(line)
-                    components = line.split()
-                    if command_type == "C_ARITHMETIC":
-                        arg1 = components[0]
-                        code_writer.write_arithmetic(arg1, outfile, i)
-                    elif command_type != "C_RETURN":
-                        arg1 = components[1]
-                        if command_type in ("C_PUSH", "C_POP", "C_FUNCTION", "C_CALL"):
-                            arg2 = components[2]
-                        code_writer.write_push_pop(components[0], arg1, arg2, outfile)
+    
+    if vm_input.endswith(".vm"): # user inputs file name
+        vm_filenames = [vm_input]
+    else: # user inputs dir name
+        vm_filenames = [os.path.join("..", "vm", vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]
+    
+    vm_translator = VMTranslator(vm_filenames, out_filename)
+    vm_translator.parse()
 
 
 if __name__ == "__main__":
