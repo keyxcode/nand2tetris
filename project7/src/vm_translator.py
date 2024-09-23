@@ -115,9 +115,10 @@ D=M
 @SP
 M=M-1
 A=M
+D=M-D
 
 @SET_TRUE.{key}
-M-D;{command}
+D;{command}
 @SP
 A=M
 M=0
@@ -127,7 +128,7 @@ M=0
 (SET_TRUE.{key})
 @SP
 A=M
-M=0
+M=-1
 
 (END.{key})
 @SP
