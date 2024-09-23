@@ -34,21 +34,25 @@ def write_arithmetic(command: str, outfile: TextIO, key: int) -> None:
     }
 
     # binary arithmetic and logical
-    if command == "add":
+    if command in ("add", "and", "or"):
         command = command_lookups[command]
+
         asm = f'''
 @SP
 M=M-1
 A=M
 D=M
-A=A-1
-M=D+M
-D=A
+
 @SP
-M=D+1
+M=M-1
+A=M
+M=D{command}M
+
+@SP
+M=M+1
         '''
 
-    elif command in ("sub", "and", "or"):
+    elif command in ("sub"):
         command = command_lookups[command]
 
         asm = f'''
@@ -56,11 +60,14 @@ M=D+1
 M=M-1
 A=M
 D=M
-A=A-1
-M=M{command}D
-D=A
+
 @SP
-M=D+1
+M=M-1
+A=M
+M=M{command}D
+
+@SP
+M=M+1
         '''
     
     # unary arithmetic and logical
@@ -72,9 +79,9 @@ M=D+1
 M=M-1
 A=M
 M={command}M
-D=A
+
 @SP
-M=D+1
+M=M+1
         '''
 
     # top of the stack now is the difference between a - b
@@ -101,21 +108,26 @@ M=D+1
 
         asm = f'''
 @SP
+M=M-1
 A=M
 D=M
-A=A-1
 
-D=M-D
-@SET_TRUE
-D;{command}
 @SP
+M=M-1
+A=M
+
+@SET_TRUE.{key}
+M-D;{command}
+@SP
+A=M
 M=0
 @END.{key}
 0;JMP
 
 (SET_TRUE.{key})
 @SP
-M=-1
+A=M
+M=0
 
 (END.{key})
 @SP
@@ -129,12 +141,13 @@ def write_push_pop(command: str, segment: str, idx: int, outfile: TextIO) -> Non
     asm = f'''
 @{idx}
 D=A
+
 @SP
 A=M
 M=D
-D=A+1
+
 @SP
-M=D
+M=M+1
     '''
     outfile.write(asm)
 
