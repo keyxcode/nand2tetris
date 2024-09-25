@@ -41,7 +41,7 @@ A=M
 M=M+1
 '''
 
-    def write_arithmetic(self, command: str, outfile: TextIO, key: int) -> None:
+    def write_arithmetic(self, command: str, key: int) -> str:
         """
         Generates Hack assembly code for the specified arithmetic command.
 
@@ -107,9 +107,9 @@ M=-1
 {self.INCREMENT_STACK_POINTER}
             '''
 
-        outfile.write(asm)
+        return asm
 
-    def write_push_pop(self, command: str, segment: str, idx: int, outfile: TextIO) -> None:
+    def write_push_pop(self, command: str, segment: str, idx: int) -> str:
         # hard code command = "push" and segment = "constant" to test
         asm = f'''
 @{idx}
@@ -122,4 +122,4 @@ M=D
 {self.INCREMENT_STACK_POINTER}
         '''
 
-        outfile.write(asm)
+        return asm

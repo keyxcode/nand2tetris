@@ -29,15 +29,17 @@ class VMTranslator:
                         continue # ignore empty line/ comment
 
                     command_type = self.get_command_type(line)
-                    components = line.split()
-                    if command_type == "C_ARITHMETIC":
-                        arg1 = components[0]
-                        self.code_writer.write_arithmetic(arg1, outfile, i)
-                    elif command_type != "C_RETURN":
-                        arg1 = components[1]
-                        if command_type in ("C_PUSH", "C_POP", "C_FUNCTION", "C_CALL"):
-                            arg2 = components[2]
-                        self.code_writer.write_push_pop(components[0], arg1, arg2, outfile)
+                    command_components = line.split()
+                    
+                    if command_type == "C_ARITHMETIC": # only 1 component
+                        asm = self.code_writer.write_arithmetic(command_components[0], i)
+                    elif command_type != "C_RETURN": 
+                        # assume only ("C_PUSH", "C_POP") e.g. push local 0
+                        # will have to refactor this in the future to support function and call commands
+                        command, segment, idx = command_components
+                        asm = self.code_writer.write_push_pop(command, segment, idx)
+                    
+                    outfile.write(asm)
 
 def main():
     if len(sys.argv) != 2:
@@ -49,9 +51,9 @@ def main():
     # and the output assembly will be in ../bin/
     out_filename = os.path.join("..", "asm", os.path.splitext(sys.argv[1])[0] + ".asm")
     
-    if vm_input.endswith(".vm"): # user inputs file name
+    if vm_input.endswith(".vm"): # input is file name
         vm_filenames = [vm_input]
-    else: # user inputs dir name
+    else: # input is dir name
         vm_filenames = [os.path.join("..", "vm", vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]
     
     vm_translator = VMTranslator(vm_filenames, out_filename)
