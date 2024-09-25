@@ -24,7 +24,7 @@ class VMTranslator:
     def parse(self) -> None:
         for vm_filename in self.vm_filenames:
             with open(vm_filename, "r") as infile, open(self.out_filename, "w") as outfile:
-                for i, line in enumerate(infile):
+                for key, line in enumerate(infile): # use line num as the key for code writer methods
                     if line.startswith("//") or not line.strip():
                         continue # ignore empty line/ comment
 
@@ -32,12 +32,12 @@ class VMTranslator:
                     command_components = line.split()
                     
                     if command_type == "C_ARITHMETIC": # only 1 component
-                        asm = self.code_writer.write_arithmetic(command_components[0], i)
+                        asm = self.code_writer.write_arithmetic(command_components[0], key)
                     elif command_type != "C_RETURN": 
                         # assume only ("C_PUSH", "C_POP") e.g. push local 0
                         # will have to refactor this in the future to support function and call commands
                         command, segment, idx = command_components
-                        asm = self.code_writer.write_push_pop(command, segment, idx)
+                        asm = self.code_writer.write_push_pop(command, segment, idx, key)
                     
                     outfile.write(asm)
 

@@ -113,7 +113,7 @@ class CodeWriter:
 
         return asm
 
-    def write_push_pop(self, command: str, segment: str, idx: int) -> str:
+    def write_push_pop(self, command: str, segment: str, idx: int, key: int) -> str:
         if command == "push":
             if segment == "constant":
                 asm = f'''
@@ -138,7 +138,9 @@ class CodeWriter:
 
                 // push the value in D to the stack
                 @SP
+                A=M
                 M=D
+
                 {self.INCREMENT_STACK_POINTER}
                 '''
             elif segment in ("pointer", "temp"):
@@ -146,17 +148,22 @@ class CodeWriter:
                 asm = f'''
                 // find the value at the element to push and save it to D
                 @{base}
-                D=M
+                D=A
                 @{idx}
                 A=D+A
                 D=M
 
                 // push the value in D to the stack
                 @SP
+                A=M
                 M=D
+
                 {self.INCREMENT_STACK_POINTER}
                 '''
+            else: # segment == "static"
+                asm = f'''
 
+                '''
 
         elif command == "pop":
             # there's no constant case for pop because it wouldn't make sense
@@ -186,7 +193,7 @@ class CodeWriter:
                 asm = f'''
                 // store the mem segment address to R13 (free register)
                 @{base}
-                D=M
+                D=A
                 @{idx}
                 D=D+A
                 @R13
@@ -199,6 +206,10 @@ class CodeWriter:
                 @R13
                 A=M
                 M=D
+                '''
+            else: # segment == "static"
+                asm = f'''
+
                 '''
 
         return asm
