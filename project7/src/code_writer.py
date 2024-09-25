@@ -1,5 +1,3 @@
-from typing import TextIO
-
 class CodeWriter:
     def __init__(self):
         self.operator_lookup = {
@@ -12,6 +10,13 @@ class CodeWriter:
             "eq": "JEQ",
             "gt": "JGT",
             "lt": "JLT"
+        }
+
+        self.mem_pointer_lookup = {
+            "local": "LCL",
+            "argument": "ARG",
+            "this": "THIS",
+            "that": "THAT"
         }
 
         #==========
@@ -47,7 +52,6 @@ M=M+1
 
         Args:
             command (str): Arithmetic command ("add", "sub", "and", "or", "neg", "not", "eq", "gt", "lt").
-            outfile (TextIO): Output file to write the assembly code.
             key (int): Unique key for labeling conditional jumps.
         """
 
@@ -61,7 +65,7 @@ M=M+1
 M=D{op}M
 
 {self.INCREMENT_STACK_POINTER}
-            '''
+'''
 
         elif command == "sub":
             asm = f'''
@@ -71,7 +75,7 @@ M=D{op}M
 M=M{op}D
 
 {self.INCREMENT_STACK_POINTER}
-            '''
+'''
         
         elif command in ("neg", "not"):
             asm = f'''
@@ -79,7 +83,7 @@ M=M{op}D
 M={op}M
 
 {self.INCREMENT_STACK_POINTER}
-            '''
+'''
             
         else: # command in ("eq", "gt", "lt"):
             asm = f'''
@@ -105,13 +109,14 @@ M=-1
 
 (END.{key})
 {self.INCREMENT_STACK_POINTER}
-            '''
+'''
 
         return asm
 
     def write_push_pop(self, command: str, segment: str, idx: int) -> str:
-        # hard code command = "push" and segment = "constant" to test
-        asm = f'''
+        if command == "push":
+            if segment == "constant":
+                asm = f'''
 @{idx}
 D=A
 
@@ -120,6 +125,44 @@ A=M
 M=D
 
 {self.INCREMENT_STACK_POINTER}
-        '''
+'''
+            elif segment in ("local", "argument", "this", "that"):
+                mem_pointer = self.mem_pointer_lookup[segment]
+                asm = f'''
+// find the value of the element to push and save it to D
+@{mem_pointer}
+D=M
+@{idx}
+A=D+A
+D=M
+
+// push the value in D to the stack
+@SP
+M=D
+{self.INCREMENT_STACK_POINTER}
+'''
+        elif command == "pop":
+            # there's no constant case for pop because it wouldn't make sense
+            # as constant is a pure virtual segment
+            
+            if segment in ("local", "argument", "this", "that"):
+                mem_pointer = self.mem_pointer_lookup[segment]
+                asm = f'''
+// store the mem segment address to R13 (free register)
+@{mem_pointer}
+D=M
+@{idx}
+D=D+A
+@R13
+M=D
+
+// decrement the stack pointer and get the value there to D
+{self.POP_STACK_TO_D}
+
+// set the mem segment to the value at R13
+@R13
+A=M
+M=D
+'''                
 
         return asm
