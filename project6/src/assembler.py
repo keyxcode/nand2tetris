@@ -126,8 +126,8 @@ def main():
 
     # assume that the assembly code file is found in ../asm/
     # and the output binary will be in ../bin/
-    in_filename = os.path.join("asm", sys.argv[1])
-    out_filename = os.path.join("bin", os.path.splitext(sys.argv[1])[0] + ".hack")
+    in_filename = os.path.join("..", "asm", sys.argv[1])
+    out_filename = os.path.join("..", "bin", os.path.splitext(sys.argv[1])[0] + ".hack")
 
     # first pass: read all the label symbols and their corresponding ROM address into the symbol table
     symbol_table = init_symbol_table()
