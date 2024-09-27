@@ -6,35 +6,25 @@ from translator import CTranslator
 
 
 class Assembler:
-    """
-    Handles the assembly of a Hack assembly program into Hack binary machine code.
-
-    Attributes:
-        symbol_table (Dict[str, str]): Maps symbols to binary addresses.
-        code (Code): Translates C-instruction fields to binary.
-        base_memory (int): Starting address for new A-instruction symbols in RAM, starting at 16.
-
-    Methods:
-        parse(in_filename: str, out_filename: str) -> None
-        _translate_a_instruction(line: str) -> str
-        _translate_c_instruction(line: str) -> str
-        _get_c_parts(instruction: str) -> Dict[Optional[str], str]
-    """
-
-    def __init__(self, symbol_table: Dict[str, str]):
+    def __init__(self, asm_filepath: str, symbol_table: Dict[str, str]):
+        """
+        Initializes the Assembler to translate a Hack assembly program into Hack binary machine code.
+        
+        Args:
+            asm_filepath (str): Path to the input assembly file.
+            symbol_table (Dict[str, str]): Dict that maps symbols to binary addresses.
+        """
+        self.in_filepath = asm_filepath
+        self.out_filepath = os.path.splitext(asm_filepath)[0] + ".hack"
         self.symbol_table = symbol_table
         self.c_translator = CTranslator()
-        self.base_memory = 16
+        self.base_memory = 16 # RAM address counter for new A-instruction symbols, starting at 16.
 
-    def parse(self, in_filename: str, out_filename: str) -> None:
+    def parse(self) -> None:
         """
         Translates an assembly source file into binary code and writes the result to an output file.
-
-        Args:
-            in_filename (str): Path to the input assembly file.
-            out_filename (str): Path to the output file for binary code.
         """
-        with open(in_filename, "r") as infile, open(out_filename, "w") as outfile:
+        with open(self.in_filepath, "r") as infile, open(self.out_filepath, "w") as outfile:
             for line in infile:
                 # preprocess
                 line = line.strip()  # remove whitespace
@@ -126,21 +116,19 @@ class Assembler:
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python assembler.py <filename>")
+        print("Usage: python assembler.py <asm-file-path>")
         sys.exit(1)
 
-    # assume that the assembly code file is found in ../asm/
-    # and the output binary will be in ../bin/
-    in_filename = os.path.join("..", "asm", sys.argv[1])
-    out_filename = os.path.join("..", "bin", os.path.splitext(sys.argv[1])[0] + ".hack")
+    # assume user input is valid
+    asm_filepath = sys.argv[1]
 
     # first pass: read all the label symbols and their corresponding ROM address into the symbol table
     symbol_table = init_symbol_table()
-    read_label_symbols(in_filename, symbol_table)
+    read_label_symbols(asm_filepath, symbol_table)
 
     # second pass: parse the assembly code
-    assembler = Assembler(symbol_table)
-    assembler.parse(in_filename, out_filename)
+    assembler = Assembler(asm_filepath, symbol_table)
+    assembler.parse()
 
 
 if __name__ == "__main__":

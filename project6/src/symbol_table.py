@@ -21,7 +21,7 @@ def init_symbol_table() -> Dict[str, str]:
     }
 
 
-def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
+def read_label_symbols(filepath: str, symbol_table: Dict[str, str]) -> None:
     """
     Parses label symbols from an assembly file and updates the symbol table.
 
@@ -29,7 +29,7 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
     The ROM address is the number of the line of code right after the label.
 
     Args:
-        filename (str): Path to the assembly file.
+        filepath (str): Path to the assembly file.
         symbol_table (Dict[str, str]): Dictionary to update with labels and their binary addresses.
 
     Returns:
@@ -38,7 +38,7 @@ def read_label_symbols(filename: str, symbol_table: Dict[str, str]) -> None:
     # starts with -1 so that the first line of code is registered as 0
     line_num = -1
 
-    with open(filename, "r") as file:
+    with open(filepath, "r") as file:
         for line in file:
             line = line.strip()
             if line == "" or line.startswith("//"):

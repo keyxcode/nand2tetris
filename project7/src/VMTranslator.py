@@ -75,7 +75,7 @@ class VMTranslator:
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python assembler.py <vm-directory-name | vm-file-name>")
+        print("Usage: python assembler.py <vm-directory | vm-file-path>")
         sys.exit(1)
     
     # assume user input is valid
