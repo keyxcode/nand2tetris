@@ -2,10 +2,21 @@ import os, sys
 from code_writer import CodeWriter
 
 class VMTranslator:
-    def __init__(self, vm_filenames, out_filename):
-        self.code_writer = CodeWriter()
+    def __init__(self, vm_input: str):
+        # use os.path.splitext to remove file extension if there's any
+        self.out_filename = os.path.splitext(sys.argv[1])[0] + ".asm"
+
+        # remove path and keep only the file | dir name by itself
+        program_name = os.path.basename(vm_input)
+        if vm_input.endswith(".vm"): # input is file name
+            # use the user input vm program name as the code writer's name (to be used in static push pop)
+            self.code_writer = CodeWriter(os.path.splitext(program_name)[0])
+            vm_filenames = [vm_input]
+        else: # input is dir name
+            self.code_writer = CodeWriter(program_name)
+            # grab all the .vm files in the dir
+            vm_filenames = [os.path.join(vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]      
         self.vm_filenames = vm_filenames
-        self.out_filename = out_filename
 
 
     def get_command_type(self, command: str) -> str:
@@ -24,7 +35,7 @@ class VMTranslator:
     def parse(self) -> None:
         for vm_filename in self.vm_filenames:
             with open(vm_filename, "r") as infile, open(self.out_filename, "w") as outfile:
-                for key, line in enumerate(infile): # use line num as the key for code writer methods
+                for key, line in enumerate(infile): # use line num as the key for code writer arithmetic
                     if line.startswith("//") or not line.strip():
                         continue # ignore empty line/ comment
 
@@ -37,26 +48,17 @@ class VMTranslator:
                         # assume only ("C_PUSH", "C_POP") e.g. push local 0
                         # will have to refactor this in the future to support function and call commands
                         command, segment, idx = command_components
-                        asm = self.code_writer.write_push_pop(command, segment, idx, key)
+                        asm = self.code_writer.write_push_pop(command, segment, idx)
                     
                     outfile.write(asm)
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python assembler.py <vm-dir-name>")
+        print("Usage: python assembler.py <vm-directory-name | vm-file-name>")
         sys.exit(1)
-
-    # assume that the vm code dir is a subdir of ../vm/
-    vm_input = os.path.join("..", "vm", sys.argv[1])
-    # and the output assembly will be in ../bin/
-    out_filename = os.path.join("..", "asm", os.path.splitext(sys.argv[1])[0] + ".asm")
     
-    if vm_input.endswith(".vm"): # input is file name
-        vm_filenames = [vm_input]
-    else: # input is dir name
-        vm_filenames = [os.path.join("..", "vm", vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]
-    
-    vm_translator = VMTranslator(vm_filenames, out_filename)
+    # assume user input is valid
+    vm_translator = VMTranslator(sys.argv[1])
     vm_translator.parse()
 
 

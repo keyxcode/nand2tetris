@@ -1,5 +1,7 @@
 class CodeWriter:
-    def __init__(self):
+    def __init__(self, name: str):
+        self.name = name
+
         self.operator_lookup = {
             "add": "+",
             "sub": "-",
@@ -113,7 +115,7 @@ class CodeWriter:
 
         return asm
 
-    def write_push_pop(self, command: str, segment: str, idx: int, key: int) -> str:
+    def write_push_pop(self, command: str, segment: str, idx: int) -> str:
         if command == "push":
             if segment == "constant":
                 asm = f'''
@@ -162,7 +164,15 @@ class CodeWriter:
                 '''
             else: # segment == "static"
                 asm = f'''
+                @{self.name}.{idx}
+                D=M
 
+                // push the value in D to the stack
+                @SP
+                A=M
+                M=D
+
+                {self.INCREMENT_STACK_POINTER}
                 '''
 
         elif command == "pop":
@@ -209,7 +219,9 @@ class CodeWriter:
                 '''
             else: # segment == "static"
                 asm = f'''
-
+                {self.POP_STACK_TO_D}
+                @{self.name}.{idx}
+                M=D
                 '''
 
         return asm
