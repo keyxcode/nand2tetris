@@ -1,5 +1,5 @@
 import os, sys
-from typing import Dict, List, TextIO
+from typing import Dict, List
 from utils import to_binary
 from symbol_table import init_symbol_table, read_label_symbols
 from translator import CTranslator
@@ -16,8 +16,8 @@ class Assembler:
 
     Methods:
         parse(in_filename: str, out_filename: str) -> None
-        _handle_a_instruction(line: str, outfile: TextIO) -> None
-        _handle_c_instruction(line: str, outfile: TextIO) -> None
+        _translate_a_instruction(line: str) -> str
+        _translate_c_instruction(line: str) -> str
         _get_c_parts(instruction: str) -> Dict[Optional[str], str]
     """
 
@@ -42,55 +42,60 @@ class Assembler:
                     continue  # ignore empty/ comment/ label line
 
                 if line[0] == "@":  # A-instruction
-                    self._handle_a_instruction(line, outfile)
+                    bin_code = self._translate_a_instruction(line)
                 else:  # C-instruction
-                    self._handle_c_instruction(line, outfile)
+                    bin_code = self._translate_c_instruction(line)
+                
+                outfile.write(bin_code + "\n")
 
-    def _handle_a_instruction(self, line: str, outfile: TextIO) -> None:
+    def _translate_a_instruction(self, line: str) -> str:
         """
-        Processes an A-instruction and writes its binary representation to the output file.
+        Processes an A-instruction and returns its binary representation.
 
-        Each time a symbolic A-instruction is encountered, check if the symbol is already in the symbol table
-        If it is, read from it, else enter (new symbol : free RAM slot (starting at address 16)) to the table`
-        The binary representation is written to the output file.
+        Each time a symbolic A-instruction is encountered, the method checks if the symbol 
+        is already in the symbol table. If it is, it reads from it; otherwise, it enters
+        the new symbol with a free RAM slot (starting at address 16) into the table.
 
         Args:
             line (str): The A-instruction line from the input file.
-            outfile (TextIO): The file object to write the binary output to.
+
+        Returns:
+            str: The binary representation of the A-instruction.
         """
         address = line[1:]
 
         try:  # valid integer address
-            out_line = "0" + to_binary(int(address))
+            bin_code = "0" + to_binary(int(address))
         except ValueError:  # symbolic address (variable (RAM) or label (ROM))
             if address in self.symbol_table:
-                out_line = "0" + self.symbol_table[address]
+                bin_code = "0" + self.symbol_table[address]
             else:
                 self.symbol_table[address] = to_binary(int(self.base_memory))
-                out_line = "0" + self.symbol_table[address]
+                bin_code = "0" + self.symbol_table[address]
                 self.base_memory += 1
 
-        outfile.write(out_line + "\n")
+        return bin_code
 
-    def _handle_c_instruction(self, line: str, outfile: TextIO) -> None:
+    def _translate_c_instruction(self, line: str) -> str:
         """
-        Processes a C-instruction and writes its binary representation to the output file.
+        Processes a C-instruction and returns its binary representation.
 
         The method extracts the `comp`, `dest`, and `jump` fields and translates them using the `Code` class.
-        The binary representation is written to the output file.
 
         Args:
             line (str): The C-instruction line from the input file.
-            outfile (TextIO): The file object to write the binary output to.
+
+        Returns:
+            str: The binary representation of the C-instruction.
         """
         # fields is in the format of [comp, dest, jump]
         fields = self._get_c_fields(line)
         translated_fields = [
             self.c_translator.translate(inst, i) for i, inst in enumerate(fields)
         ]
-        out_line = "111" + "".join(translated_fields)
+        bin_code = "111" + "".join(translated_fields)
 
-        outfile.write(out_line + "\n")
+        return bin_code
 
     def _get_c_fields(self, instruction: str) -> List[str]:
         """
