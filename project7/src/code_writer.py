@@ -1,5 +1,11 @@
 class CodeWriter:
     def __init__(self, name: str):
+        """
+        Initializes the CodeWriter with segment mappings and code snippets.
+
+        Args:
+            name (str): The basename of the output program.
+        """
         self.name = name # used for static segment symbols
 
         self.operator_lookup = {
@@ -69,6 +75,8 @@ class CodeWriter:
         Args:
             command (str): Arithmetic command ("add", "sub", "and", "or", "neg", "not", "eq", "gt", "lt").
             key (int): Unique key for labeling conditional jumps.
+        Returns:
+            str: Generated assembly code.
         """
 
         op = self.operator_lookup[command]
@@ -130,6 +138,17 @@ class CodeWriter:
         return asm
 
     def write_push_pop(self, command: str, segment: str, idx: int) -> str:
+        """
+        Generates Hack assembly code for push or pop commands.
+
+        Args:
+            command (str): Command type ("push" or "pop").
+            segment (str): Segment name ("constant", "local", "argument", "this", "that", "pointer", "temp", "static").
+            idx (int): Index for the push/pop operation.
+
+        Returns:
+            str: Generated assembly code.
+        """
         if command == "push":
             if segment == "constant":
                 asm = f'''

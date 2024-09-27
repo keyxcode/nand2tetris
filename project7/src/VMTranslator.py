@@ -3,6 +3,12 @@ from code_writer import CodeWriter
 
 class VMTranslator:
     def __init__(self, vm_input: str):
+        """
+        Initializes the VMTranslator with the input VM file or directory.
+
+        Args:
+            vm_input (str): Path to the input VM file or directory containing VM files.
+        """
         # use os.path.splitext to remove file extension if there's any
         self.out_filename = os.path.splitext(sys.argv[1])[0] + ".asm"
 
@@ -20,6 +26,15 @@ class VMTranslator:
 
 
     def get_command_type(self, command: str) -> str:
+        """
+        Determines the type of VM command.
+
+        Args:
+            command (str): The VM command string.
+
+        Returns:
+            str: The command type ("C_PUSH", "C_POP", "C_ARITHMETIC", etc.).
+        """
         command = command.lower()
 
         if command.startswith("push"):
@@ -33,6 +48,12 @@ class VMTranslator:
         return ""
 
     def parse(self) -> None:
+        """
+        Parses VM files and translates them into Hack assembly code.
+
+        Reads each VM file and generates the corresponding assembly code,
+        which is written to the output file.
+        """
         for vm_filename in self.vm_filenames:
             with open(vm_filename, "r") as infile, open(self.out_filename, "w") as outfile:
                 for key, line in enumerate(infile): # use line num as the key for code writer arithmetic
