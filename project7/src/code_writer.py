@@ -1,6 +1,6 @@
 class CodeWriter:
     def __init__(self, name: str):
-        self.name = name # used for static segment labels
+        self.name = name # used for static segment symbols
 
         self.operator_lookup = {
             "add": "+",
@@ -18,7 +18,9 @@ class CodeWriter:
             "local": "LCL",
             "argument": "ARG",
             "this": "THIS",
-            "that": "THAT"
+            "that": "THAT",
+            "pointer": 3,
+            "temp": 5
         }
 
         #==========
@@ -139,25 +141,26 @@ class CodeWriter:
                 {self.INCREMENT_STACK_POINTER}
                 '''
             elif segment in ("local", "argument", "this", "that"):
+                # the corresponding memory pointer (RAM register) stores the base address of the segment we're trying to access
                 mem_pointer = self.mem_pointer_lookup[segment]
                 asm = f'''
-                // find the value of the element to push and save it to D
                 @{mem_pointer}
-                D=M
+                D=M // get the base address of the wanted segment
                 @{idx}
-                A=D+A
-                D=M
+                A=D+A // get the exact address we want, and go there via A
+                D=M // get the data stored there to D
 
                 {self.PUT_D_IN_STACK}
 
                 {self.INCREMENT_STACK_POINTER}
                 '''
             elif segment in ("pointer", "temp"):
+                # in this case, we go to the RAM register and use the data stored there itself
+                # instead of using it as an address and making an additional jump
                 base = 3 if segment == "pointer" else 5
                 asm = f'''
-                // find the value at the element to push and save it to D
                 @{base}
-                D=A
+                D=A // subtle difference compared to the case above
                 @{idx}
                 A=D+A
                 D=M
@@ -168,6 +171,8 @@ class CodeWriter:
                 '''
             else: # segment == "static"
                 asm = f'''
+                // the first time this symbol is encountered (whether in push or pop)
+                // it will be mapped to the next free RAM register starting from R16
                 @{self.name}.{idx}
                 D=M
 
@@ -183,18 +188,20 @@ class CodeWriter:
             if segment in ("local", "argument", "this", "that"):
                 mem_pointer = self.mem_pointer_lookup[segment]
                 asm = f'''
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @{mem_pointer}
                 D=M
                 @{idx}
                 D=D+A
+                
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
                 // decrement the stack pointer and get the value there to D
                 {self.POP_STACK_TO_D}
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
@@ -202,18 +209,20 @@ class CodeWriter:
             elif segment in ("pointer", "temp"):
                 base = 3 if segment == "pointer" else 5
                 asm = f'''
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @{base}
                 D=A
                 @{idx}
                 D=D+A
+
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
                 // decrement the stack pointer and get the value there to D
                 {self.POP_STACK_TO_D}
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
