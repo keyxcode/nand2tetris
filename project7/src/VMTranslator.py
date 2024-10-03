@@ -43,9 +43,21 @@ class VMTranslator:
             return "C_POP"
         if command.startswith(("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not")):
             return "C_ARITHMETIC"
+        if command.startswith("label"):
+            return "C_LABEL"
+        if command.startswith("goto"):
+            return "C_GOTO"
+        if command.startswith("if-goto"):
+            return "C_IF"
+        if command.startswith("function"):
+            return "C_FUNCTION"
+        if command.startswith("return"):
+            return "C_RETURN"
+        if command.startswith("call"):
+            return "C_CALL"
         
-        # dummy fall back. in the future we'll support more command types
-        return ""
+        raise ValueError(f"Unknown command: {command}")
+        
 
     def parse(self) -> None:
         """
