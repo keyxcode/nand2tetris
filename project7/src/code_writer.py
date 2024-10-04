@@ -278,3 +278,31 @@ class CodeWriter:
         '''
 
         return asm
+
+    def write_function(self, function_name: str, num_locals: int) -> str:
+        # declare a label for the function name
+        # push 0 num_local times
+        pass
+    
+    def write_call(self, function_name: str, num_args: int) -> str:
+        # push LCL
+        # push return-address
+        # push ARG
+        # push THIS
+        # push THAT
+        # ARG = SP-n-5
+        # LCL = SP
+        # goto f
+        pass
+
+    def write_return(self) -> str:
+        # FRAME = LCL
+        # RET = *(FRAME-5)
+        # *ARG = pop()
+        # SP = ARG+1
+        # THAT = *(FRAME-1)
+        # THIS = *(FRAME-2)
+        # ARG = *(FRAME-3)
+        # LCL = *(FRAME-4)
+        # goto RET
+        pass

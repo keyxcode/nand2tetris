@@ -87,6 +87,12 @@ class VMTranslator:
                         asm = self.code_writer.write_goto(command_components[1])
                     elif command_type == "C_IF":
                         asm = self.code_writer.write_if(command_components[1])
+                    elif command_type == "C_FUNCTION":
+                        asm = self.code_writer.write_label(command_components[1], command_components[2])
+                    elif command_type == "C_RETURN":
+                        asm = self.code_writer.write_goto()
+                    elif command_type == "C_CALL":
+                        asm = self.code_writer.write_if(command_components[1], command_components[2])
 
                     outfile.write(asm)
 
