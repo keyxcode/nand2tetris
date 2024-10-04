@@ -254,3 +254,30 @@ class CodeWriter:
                 '''
 
         return asm
+    
+
+    def write_label(self, command: str) -> str:
+        label = command.split()[1]
+        asm = f"({label})"
+
+        return asm
+
+
+    def write_goto(self, command: str) -> str:
+        label = command.split()[1]
+        asm = f'''
+        @{label}
+        0;JMP
+        '''
+
+        return asm
+
+    def write_if(self, command: str) -> str:
+        label = command.split()[1]
+        asm = f'''
+        {self.POP_STACK_TO_D}
+        @{label}
+        D;JNE
+        '''
+
+        return asm

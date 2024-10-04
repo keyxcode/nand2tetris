@@ -77,12 +77,18 @@ class VMTranslator:
                     
                     if command_type == "C_ARITHMETIC": # only 1 component
                         asm = self.code_writer.write_arithmetic(command_components[0], key)
-                    elif command_type != "C_RETURN": 
+                    elif command_type in ("C_PUSH", "C_POP"): 
                         # assume only ("C_PUSH", "C_POP") e.g. push local 0
                         # will have to refactor this in the future to support function and call commands
                         command, segment, idx = command_components
                         asm = self.code_writer.write_push_pop(command, segment, idx)
-                    
+                    elif command_type == "C_LABEL":
+                        asm = self.code_writer.write_label(command)
+                    elif command_type == "C_GOTO":
+                        asm = self.code_writer.write_goto(command)
+                    elif command_type == "C_IF":
+                        asm = self.code_writer.write_if(command)
+
                     outfile.write(asm)
 
 def main():
