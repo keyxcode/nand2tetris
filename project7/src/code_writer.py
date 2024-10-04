@@ -282,7 +282,26 @@ class CodeWriter:
     def write_function(self, function_name: str, num_locals: int) -> str:
         # declare a label for the function name
         # push 0 num_local times
-        pass
+        asm = f'''
+        ({function_name})
+
+        @R13
+        M={num_locals}
+        D=M
+
+        (SETUPLOOP.{function_name})
+        @ENDSETUP.{function_name}
+        D;JEQ
+        {self.write_push_pop("push", "constant", 0)}
+        @R13
+        M=M-1
+        D=M
+        @SETUPLOOP.{function_name}
+        
+        (ENDSETUP.{function_name})
+        '''
+
+        return asm
     
     def write_call(self, function_name: str, num_args: int) -> str:
         # push LCL
@@ -293,7 +312,8 @@ class CodeWriter:
         # ARG = SP-n-5
         # LCL = SP
         # goto f
-        pass
+        
+        return ""
 
     def write_return(self) -> str:
         # FRAME = LCL
@@ -305,4 +325,5 @@ class CodeWriter:
         # ARG = *(FRAME-3)
         # LCL = *(FRAME-4)
         # goto RET
-        pass
+        
+        return ""
