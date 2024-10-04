@@ -256,15 +256,13 @@ class CodeWriter:
         return asm
     
 
-    def write_label(self, command: str) -> str:
-        label = command.split()[1]
+    def write_label(self, label: str) -> str:
         asm = f"({label})"
 
         return asm
 
 
-    def write_goto(self, command: str) -> str:
-        label = command.split()[1]
+    def write_goto(self, label: str) -> str:
         asm = f'''
         @{label}
         0;JMP
@@ -272,8 +270,7 @@ class CodeWriter:
 
         return asm
 
-    def write_if(self, command: str) -> str:
-        label = command.split()[1]
+    def write_if(self, label: str) -> str:
         asm = f'''
         {self.POP_STACK_TO_D}
         @{label}
