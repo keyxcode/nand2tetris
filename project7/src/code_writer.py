@@ -284,18 +284,15 @@ class CodeWriter:
         # push 0 num_local times
         asm = f'''
         ({function_name})
-
-        @R13
-        M={num_locals}
-        D=M
+        
+        @{num_locals}
+        D=A
 
         (SETUPLOOP.{function_name})
         @ENDSETUP.{function_name}
         D;JEQ
         {self.write_push_pop("push", "constant", 0)}
-        @R13
-        M=M-1
-        D=M
+        D=D-1
         @SETUPLOOP.{function_name}
         
         (ENDSETUP.{function_name})
@@ -303,17 +300,48 @@ class CodeWriter:
 
         return asm
     
-    def write_call(self, function_name: str, num_args: int) -> str:
-        # push LCL
+    def write_call(self, function_name: str, num_args: int, key: int) -> str:
         # push return-address
+        # push LCL
         # push ARG
         # push THIS
         # push THAT
         # ARG = SP-n-5
         # LCL = SP
         # goto f
+
+        asm = f'''
+        {self.write_push_pop("push", "constant", f"RETURN.{key}")}
+        {self.write_push_pop("push", "local", 0)}
+        {self.write_push_pop("push", "arg", 0)}
+        {self.write_push_pop("push", "this", 0)}
+        {self.write_push_pop("push", "that", 0)}
+
+        // D = n + 5
+        @{num_args}
+        D=A
+        @5
+        D=D+A
+
+        // arg = sp-n-5 = sp-(n+5)
+        @SP
+        D=M-D
+        @ARG
+        M=D
+
+        // lcl = sp
+        @SP
+        D=M
+        @LCL
+        M=D
+
+        @{function_name}
+        0;JMP
         
-        return ""
+        (RETURN.{key})
+        '''
+        
+        return asm
 
     def write_return(self) -> str:
         # FRAME = LCL
@@ -325,5 +353,48 @@ class CodeWriter:
         # ARG = *(FRAME-3)
         # LCL = *(FRAME-4)
         # goto RET
+        asm = f'''
+        // save lcl/frame address to R13
+        @LCL
+        D=A
+        @R13
+        M=D
+
+        // save return address to R14
+        @5
+        A=D-A
+        D=M
+        @R14
+        M=D
+
+        // pop return data to arg 0
+        {self.write_push_pop("pop", "argument", 0)}
+
+        // SP = ARG + 1
+        @ARG
+        D=M
+        @SP
+        M=D+1
+
+        @R13
+        D=M
+        D=D-1
+        @THAT
+        M=D
+        D=D-1
+        @THIS
+        M=D
+        D=D-1
+        @ARG
+        M=D
+        D=D-1
+        @LCL
+        M=D
+        D=D-1
+
+        @R14
+        A=M
+        0;JMP
+        '''        
         
-        return ""
+        return asm

@@ -1,9 +1,8 @@
 
         (SimpleFunction.test)
-
-        @R13
-        M=2
-        D=M
+        
+        @2
+        D=A
 
         (SETUPLOOP.SimpleFunction.test)
         @ENDSETUP.SimpleFunction.test
@@ -23,9 +22,7 @@
         M=M+1
         
                 
-        @R13
-        M=M-1
-        D=M
+        D=D-1
         @SETUPLOOP.SimpleFunction.test
         
         (ENDSETUP.SimpleFunction.test)
@@ -167,3 +164,68 @@
         M=M+1
         
             
+        // save lcl/frame address to R13
+        @LCL
+        D=A
+        @R13
+        M=D
+
+        // save return address to R14
+        @5
+        A=D-A
+        D=M
+        @R14
+        M=D
+
+        // pop return data to arg 0
+        
+                // get the exact address we want to go to
+                @ARG
+                D=M
+                @0
+                D=D+A
+                
+                // store that address to R13 (free register)
+                @R13
+                M=D
+
+                // decrement the stack pointer and get the value there to D
+                
+        @SP
+        M=M-1
+        A=M
+        D=M
+        
+
+                // set the value at RAM register with address at R13 to D
+                @R13
+                A=M
+                M=D
+                
+
+        // SP = ARG + 1
+        @ARG
+        D=M
+        @SP
+        M=D+1
+
+        @R13
+        D=M
+        D=D-1
+        @THAT
+        M=D
+        D=D-1
+        @THIS
+        M=D
+        D=D-1
+        @ARG
+        M=D
+        D=D-1
+        @LCL
+        M=D
+        D=D-1
+
+        @R14
+        A=M
+        0;JMP
+        

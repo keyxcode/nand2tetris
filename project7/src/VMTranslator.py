@@ -90,7 +90,7 @@ class VMTranslator:
                     elif command_type == "C_FUNCTION":
                         asm = self.code_writer.write_function(command_components[1], int(command_components[2]))
                     elif command_type == "C_CALL":
-                        asm = self.code_writer.write_call(command_components[1], int(command_components[2]))
+                        asm = self.code_writer.write_call(command_components[1], int(command_components[2]), key)
                     elif command_type == "C_RETURN":
                         asm = self.code_writer.write_return()
 
