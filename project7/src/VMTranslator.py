@@ -64,8 +64,11 @@ class VMTranslator:
         Reads each VM file and generates the corresponding assembly code,
         which is written to the output file.
         """
+        with open(self.out_filename, "w") as outfile:
+            outfile.write(self.code_writer.write_init())
+
         for vm_filename in self.vm_filenames:
-            with open(vm_filename, "r") as infile, open(self.out_filename, "w") as outfile:
+            with open(vm_filename, "r") as infile, open(self.out_filename, "a") as outfile:
                 for key, line in enumerate(infile): # use line num as the key for code writer arithmetic
                     if line.strip().startswith("//") or not line.strip():
                         continue # ignore empty line/ comment

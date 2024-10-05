@@ -2,20 +2,24 @@
                 @3030
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
         M=M+1
         
                 
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @3
                 D=A
                 @0
                 D=D+A
+
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
@@ -27,7 +31,7 @@
         D=M
         
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
@@ -35,20 +39,24 @@
                 @3040
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
         M=M+1
         
                 
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @3
                 D=A
                 @1
                 D=D+A
+
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
@@ -60,7 +68,7 @@
         D=M
         
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
@@ -68,20 +76,24 @@
                 @32
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
         M=M+1
         
                 
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @THIS
                 D=M
                 @2
                 D=D+A
+                
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
@@ -93,7 +105,7 @@
         D=M
         
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
@@ -101,20 +113,24 @@
                 @46
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
         M=M+1
         
                 
-                // store the mem segment address to R13 (free register)
+                // get the exact address we want to go to
                 @THAT
                 D=M
                 @6
                 D=D+A
+                
+                // store that address to R13 (free register)
                 @R13
                 M=D
 
@@ -126,39 +142,39 @@
         D=M
         
 
-                // set the mem segment to the value at R13
+                // set the value at RAM register with address at R13 to D
                 @R13
                 A=M
                 M=D
                 
-                // find the value at the element to push and save it to D
                 @3
-                D=A
+                D=A // subtle difference compared to the case above
                 @0
                 A=D+A
                 D=M
 
-                // push the value in D to the stack
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
         M=M+1
         
                 
-                // find the value at the element to push and save it to D
                 @3
-                D=A
+                D=A // subtle difference compared to the case above
                 @1
                 A=D+A
                 D=M
 
-                // push the value in D to the stack
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
@@ -184,17 +200,17 @@
         M=M+1
         
             
-                // find the value of the element to push and save it to D
                 @THIS
-                D=M
+                D=M // get the base address of the wanted segment
                 @2
-                A=D+A
-                D=M
+                A=D+A // get the exact address we want, and go there via A
+                D=M // get the data stored there to D
 
-                // push the value in D to the stack
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
@@ -220,17 +236,17 @@
         M=M+1
         
             
-                // find the value of the element to push and save it to D
                 @THAT
-                D=M
+                D=M // get the base address of the wanted segment
                 @6
-                A=D+A
-                D=M
+                A=D+A // get the exact address we want, and go there via A
+                D=M // get the data stored there to D
 
-                // push the value in D to the stack
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP

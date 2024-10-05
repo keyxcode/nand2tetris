@@ -1,4 +1,6 @@
 
+
+        
                 @0
                 D=A
 
@@ -35,7 +37,7 @@
                 @R13
                 A=M
                 M=D
-                (LOOP)
+                (BasicLoop$LOOP)
                 @ARG
                 D=M // get the base address of the wanted segment
                 @0
@@ -208,7 +210,7 @@
         A=M
         D=M
         
-        @LOOP
+        @BasicLoop$LOOP
         D;JNE
         
                 @LCL

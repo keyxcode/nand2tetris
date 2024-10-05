@@ -1,13 +1,13 @@
 
-        (SimpleFunction.test)
+        (SimpleFunction$SimpleFunction.test)
         
         @2
         D=A
         @R13
         M=D
 
-        (SETUPLOOP.SimpleFunction.test)
-        @ENDSETUP.SimpleFunction.test
+        (SimpleFunction$SETUPLOOP.SimpleFunction.test)
+        @SimpleFunction$ENDSETUP.SimpleFunction.test
         D;JEQ
         
                 @LCL
@@ -29,10 +29,10 @@
                 
         @R13
         MD=M-1
-        @SETUPLOOP.SimpleFunction.test
+        @SimpleFunction$SETUPLOOP.SimpleFunction.test
         0;JMP
         
-        (ENDSETUP.SimpleFunction.test)
+        (SimpleFunction$ENDSETUP.SimpleFunction.test)
         
                 @LCL
                 D=M // get the base address of the wanted segment

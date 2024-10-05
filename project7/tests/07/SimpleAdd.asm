@@ -2,9 +2,11 @@
                 @7
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP
@@ -14,9 +16,11 @@
                 @8
                 D=A
 
-                @SP
-                A=M
-                M=D
+                
+        @SP
+        A=M
+        M=D
+        
 
                 
         @SP

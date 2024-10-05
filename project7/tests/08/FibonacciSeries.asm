@@ -1,4 +1,5 @@
 
+        
                 @ARG
                 D=M // get the base address of the wanted segment
                 @1
@@ -185,7 +186,7 @@
                 @R13
                 A=M
                 M=D
-                (LOOP)
+                (FibonacciSeries$LOOP)
                 @ARG
                 D=M // get the base address of the wanted segment
                 @0
@@ -209,12 +210,12 @@
         A=M
         D=M
         
-        @COMPUTE_ELEMENT
+        @FibonacciSeries$COMPUTE_ELEMENT
         D;JNE
         
-        @END
+        @FibonacciSeries$END
         0;JMP
-        (COMPUTE_ELEMENT)
+        (FibonacciSeries$COMPUTE_ELEMENT)
                 @THAT
                 D=M // get the base address of the wanted segment
                 @0
@@ -437,6 +438,6 @@
                 A=M
                 M=D
                 
-        @LOOP
+        @FibonacciSeries$LOOP
         0;JMP
-        (END)
+        (FibonacciSeries$END)
