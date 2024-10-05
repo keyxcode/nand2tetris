@@ -287,13 +287,17 @@ class CodeWriter:
         
         @{num_locals}
         D=A
+        @R13
+        M=D
 
         (SETUPLOOP.{function_name})
         @ENDSETUP.{function_name}
         D;JEQ
-        {self.write_push_pop("push", "constant", 0)}
-        D=D-1
+        {self.write_push_pop("push", "local", 0)}
+        @R13
+        MD=M-1
         @SETUPLOOP.{function_name}
+        0;JMP
         
         (ENDSETUP.{function_name})
         '''
@@ -354,10 +358,10 @@ class CodeWriter:
         # LCL = *(FRAME-4)
         # goto RET
         asm = f'''
-        // save lcl/frame address to R13
+        // save lcl/frame address to R15
         @LCL
-        D=A
-        @R13
+        D=M
+        @R15
         M=D
 
         // save return address to R14
@@ -376,21 +380,29 @@ class CodeWriter:
         @SP
         M=D+1
 
-        @R13
+        @R15
+        AM=M-1
         D=M
-        D=D-1
         @THAT
         M=D
-        D=D-1
+
+        @R15
+        AM=M-1
+        D=M
         @THIS
         M=D
-        D=D-1
+
+        @R15
+        AM=M-1
+        D=M
         @ARG
         M=D
-        D=D-1
+        
+        @R15
+        AM=M-1
+        D=M
         @LCL
         M=D
-        D=D-1
 
         @R14
         A=M

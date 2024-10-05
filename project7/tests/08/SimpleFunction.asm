@@ -3,13 +3,18 @@
         
         @2
         D=A
+        @R13
+        M=D
 
         (SETUPLOOP.SimpleFunction.test)
         @ENDSETUP.SimpleFunction.test
         D;JEQ
         
+                @LCL
+                D=M // get the base address of the wanted segment
                 @0
-                D=A
+                A=D+A // get the exact address we want, and go there via A
+                D=M // get the data stored there to D
 
                 
         @SP
@@ -22,8 +27,10 @@
         M=M+1
         
                 
-        D=D-1
+        @R13
+        MD=M-1
         @SETUPLOOP.SimpleFunction.test
+        0;JMP
         
         (ENDSETUP.SimpleFunction.test)
         
@@ -164,10 +171,10 @@
         M=M+1
         
             
-        // save lcl/frame address to R13
+        // save lcl/frame address to R15
         @LCL
-        D=A
-        @R13
+        D=M
+        @R15
         M=D
 
         // save return address to R14
@@ -209,21 +216,29 @@
         @SP
         M=D+1
 
-        @R13
+        @R15
+        AM=M-1
         D=M
-        D=D-1
         @THAT
         M=D
-        D=D-1
+
+        @R15
+        AM=M-1
+        D=M
         @THIS
         M=D
-        D=D-1
+
+        @R15
+        AM=M-1
+        D=M
         @ARG
         M=D
-        D=D-1
+        
+        @R15
+        AM=M-1
+        D=M
         @LCL
         M=D
-        D=D-1
 
         @R14
         A=M
