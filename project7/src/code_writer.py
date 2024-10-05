@@ -410,3 +410,14 @@ class CodeWriter:
         '''        
         
         return asm
+    
+    def write_return(self) -> str:
+        asm = f'''
+        @256
+        D=A
+        @SP
+        M=D
+        call Sys.init
+        '''
+
+        return asm
