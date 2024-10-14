@@ -104,11 +104,8 @@
         @Main$ENDSETUP.Main.fibonacci
         D;JEQ
         
-                @LCL
-                D=M // get the base address of the wanted segment
                 @0
-                A=D+A // get the exact address we want, and go there via A
-                D=M // get the data stored there to D
+                D=A
 
                 
         @SP
@@ -673,11 +670,8 @@
         @Sys$ENDSETUP.Sys.init
         D;JEQ
         
-                @LCL
-                D=M // get the base address of the wanted segment
                 @0
-                A=D+A // get the exact address we want, and go there via A
-                D=M // get the data stored there to D
+                D=A
 
                 
         @SP

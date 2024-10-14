@@ -9,19 +9,20 @@ class VMTranslator:
         Args:
             vm_input (str): Path to the input VM file or directory containing VM files.
         """
-        # use os.path.splitext to remove file extension if there's any
-        self.out_filename = os.path.splitext(sys.argv[1])[0] + ".asm"
-
         # remove path and keep only the file | dir name by itself
         program_name = os.path.basename(vm_input)
+
         if vm_input.endswith(".vm"): # input is file name
+            self.out_filename = os.path.splitext(vm_input)[0] + ".asm"
             # use the user input vm program name as the code writer's name (to be used in static push pop)
             self.code_writer = CodeWriter(os.path.splitext(program_name)[0])
             vm_filenames = [vm_input]
         else: # input is dir name
+            self.out_filename = os.path.join(vm_input, program_name + ".asm")
             self.code_writer = CodeWriter("")
             # grab all the .vm files in the dir
             vm_filenames = [os.path.join(vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]      
+        
         self.vm_filenames = vm_filenames
 
 
