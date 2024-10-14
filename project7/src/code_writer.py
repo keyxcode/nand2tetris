@@ -68,6 +68,9 @@ class CodeWriter:
         M=M+1
         '''
 
+    def set_file_name(self, name: str) -> None:
+        self.name = name
+
     def write_arithmetic(self, command: str, key: int) -> str:
         """
         Generates Hack assembly code for the specified VM command.

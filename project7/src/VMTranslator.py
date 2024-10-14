@@ -19,7 +19,7 @@ class VMTranslator:
             self.code_writer = CodeWriter(os.path.splitext(program_name)[0])
             vm_filenames = [vm_input]
         else: # input is dir name
-            self.code_writer = CodeWriter(program_name)
+            self.code_writer = CodeWriter("")
             # grab all the .vm files in the dir
             vm_filenames = [os.path.join(vm_input, f) for f in os.listdir(vm_input) if f.endswith(".vm")]      
         self.vm_filenames = vm_filenames
@@ -64,10 +64,15 @@ class VMTranslator:
         Reads each VM file and generates the corresponding assembly code,
         which is written to the output file.
         """
-        with open(self.out_filename, "w") as outfile:
-            outfile.write(self.code_writer.write_init())
+        if self.code_writer.name == "": # is dir
+            print(self.code_writer.name)
+            with open(self.out_filename, "w") as outfile:
+                outfile.write(self.code_writer.write_init())
 
         for vm_filename in self.vm_filenames:
+            # set codewriter's name for each vm file
+            self.code_writer.set_file_name(os.path.splitext(os.path.basename(vm_filename))[0])
+            
             with open(vm_filename, "r") as infile, open(self.out_filename, "a") as outfile:
                 for key, line in enumerate(infile): # use line num as the key for code writer arithmetic
                     if line.strip().startswith("//") or not line.strip():
@@ -80,8 +85,6 @@ class VMTranslator:
                     if command_type == "C_ARITHMETIC": # only 1 component
                         asm = self.code_writer.write_arithmetic(command_components[0], key)
                     elif command_type in ("C_PUSH", "C_POP"): 
-                        # assume only ("C_PUSH", "C_POP") e.g. push local 0
-                        # will have to refactor this in the future to support function and call commands
                         command, segment, idx = command_components
                         asm = self.code_writer.write_push_pop(command, segment, idx)
                     elif command_type == "C_LABEL":
