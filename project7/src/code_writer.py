@@ -297,7 +297,7 @@ class CodeWriter:
         ({self.name}$SETUPLOOP.{function_name})
         @{self.name}$ENDSETUP.{function_name}
         D;JEQ
-        {self.write_push_pop("push", "local", 0)}
+        {self.write_push_pop("push", "constant", 0)}
         @R13
         MD=M-1
         @{self.name}$SETUPLOOP.{function_name}
