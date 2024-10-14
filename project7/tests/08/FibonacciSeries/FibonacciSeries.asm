@@ -1,5 +1,4 @@
 
-        
                 @ARG
                 D=M // get the base address of the wanted segment
                 @1

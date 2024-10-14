@@ -6,7 +6,7 @@
         
         
         
-                @StaticsTest$RETURN.0
+                @$RETURN.0
                 D=A
 
                 
@@ -87,21 +87,21 @@
         @LCL
         M=D
 
-        @StaticsTest$Sys.init
+        @Sys.init
         0;JMP
         
-        (StaticsTest$RETURN.0)
+        ($RETURN.0)
         
         
-        (('Class1', '.vm')$Class1.set)
+        (Class1.set)
         
         @0
         D=A
         @R13
         M=D
 
-        (('Class1', '.vm')$SETUPLOOP.Class1.set)
-        @('Class1', '.vm')$ENDSETUP.Class1.set
+        (Class1$SETUPLOOP.Class1.set)
+        @Class1$ENDSETUP.Class1.set
         D;JEQ
         
                 @LCL
@@ -123,10 +123,10 @@
                 
         @R13
         MD=M-1
-        @('Class1', '.vm')$SETUPLOOP.Class1.set
+        @Class1$SETUPLOOP.Class1.set
         0;JMP
         
-        (('Class1', '.vm')$ENDSETUP.Class1.set)
+        (Class1$ENDSETUP.Class1.set)
         
                 @ARG
                 D=M // get the base address of the wanted segment
@@ -151,7 +151,7 @@
         A=M
         D=M
         
-                @('Class1', '.vm').0
+                @Class1.0
                 M=D
                 
                 @ARG
@@ -177,7 +177,7 @@
         A=M
         D=M
         
-                @('Class1', '.vm').1
+                @Class1.1
                 M=D
                 
                 @0
@@ -267,15 +267,15 @@
         A=M
         0;JMP
         
-        (('Class1', '.vm')$Class1.get)
+        (Class1.get)
         
         @0
         D=A
         @R13
         M=D
 
-        (('Class1', '.vm')$SETUPLOOP.Class1.get)
-        @('Class1', '.vm')$ENDSETUP.Class1.get
+        (Class1$SETUPLOOP.Class1.get)
+        @Class1$ENDSETUP.Class1.get
         D;JEQ
         
                 @LCL
@@ -297,14 +297,14 @@
                 
         @R13
         MD=M-1
-        @('Class1', '.vm')$SETUPLOOP.Class1.get
+        @Class1$SETUPLOOP.Class1.get
         0;JMP
         
-        (('Class1', '.vm')$ENDSETUP.Class1.get)
+        (Class1$ENDSETUP.Class1.get)
         
                 // the first time this symbol is encountered (whether in push or pop)
                 // it will be mapped to the next free RAM register starting from R16
-                @('Class1', '.vm').0
+                @Class1.0
                 D=M
 
                 
@@ -320,7 +320,7 @@
                 
                 // the first time this symbol is encountered (whether in push or pop)
                 // it will be mapped to the next free RAM register starting from R16
-                @('Class1', '.vm').1
+                @Class1.1
                 D=M
 
                 
@@ -426,15 +426,15 @@
         A=M
         0;JMP
         
-        (('Sys', '.vm')$Sys.init)
+        (Sys.init)
         
         @0
         D=A
         @R13
         M=D
 
-        (('Sys', '.vm')$SETUPLOOP.Sys.init)
-        @('Sys', '.vm')$ENDSETUP.Sys.init
+        (Sys$SETUPLOOP.Sys.init)
+        @Sys$ENDSETUP.Sys.init
         D;JEQ
         
                 @LCL
@@ -456,10 +456,10 @@
                 
         @R13
         MD=M-1
-        @('Sys', '.vm')$SETUPLOOP.Sys.init
+        @Sys$SETUPLOOP.Sys.init
         0;JMP
         
-        (('Sys', '.vm')$ENDSETUP.Sys.init)
+        (Sys$ENDSETUP.Sys.init)
         
                 @6
                 D=A
@@ -490,7 +490,7 @@
         
                 
         
-                @('Sys', '.vm')$RETURN.11
+                @Sys$RETURN.11
                 D=A
 
                 
@@ -571,10 +571,10 @@
         @LCL
         M=D
 
-        @('Sys', '.vm')$Class1.set
+        @Class1.set
         0;JMP
         
-        (('Sys', '.vm')$RETURN.11)
+        (Sys$RETURN.11)
         
                 // get the exact address we want to go to
                 @5
@@ -628,7 +628,7 @@
         
                 
         
-                @('Sys', '.vm')$RETURN.15
+                @Sys$RETURN.15
                 D=A
 
                 
@@ -709,10 +709,10 @@
         @LCL
         M=D
 
-        @('Sys', '.vm')$Class2.set
+        @Class2.set
         0;JMP
         
-        (('Sys', '.vm')$RETURN.15)
+        (Sys$RETURN.15)
         
                 // get the exact address we want to go to
                 @5
@@ -738,7 +738,7 @@
                 M=D
                 
         
-                @('Sys', '.vm')$RETURN.17
+                @Sys$RETURN.17
                 D=A
 
                 
@@ -819,13 +819,13 @@
         @LCL
         M=D
 
-        @('Sys', '.vm')$Class1.get
+        @Class1.get
         0;JMP
         
-        (('Sys', '.vm')$RETURN.17)
+        (Sys$RETURN.17)
         
         
-                @('Sys', '.vm')$RETURN.18
+                @Sys$RETURN.18
                 D=A
 
                 
@@ -906,23 +906,23 @@
         @LCL
         M=D
 
-        @('Sys', '.vm')$Class2.get
+        @Class2.get
         0;JMP
         
-        (('Sys', '.vm')$RETURN.18)
-        (('Sys', '.vm')$END)
-        @('Sys', '.vm')$END
+        (Sys$RETURN.18)
+        (Sys$END)
+        @Sys$END
         0;JMP
         
-        (('Class2', '.vm')$Class2.set)
+        (Class2.set)
         
         @0
         D=A
         @R13
         M=D
 
-        (('Class2', '.vm')$SETUPLOOP.Class2.set)
-        @('Class2', '.vm')$ENDSETUP.Class2.set
+        (Class2$SETUPLOOP.Class2.set)
+        @Class2$ENDSETUP.Class2.set
         D;JEQ
         
                 @LCL
@@ -944,10 +944,10 @@
                 
         @R13
         MD=M-1
-        @('Class2', '.vm')$SETUPLOOP.Class2.set
+        @Class2$SETUPLOOP.Class2.set
         0;JMP
         
-        (('Class2', '.vm')$ENDSETUP.Class2.set)
+        (Class2$ENDSETUP.Class2.set)
         
                 @ARG
                 D=M // get the base address of the wanted segment
@@ -972,7 +972,7 @@
         A=M
         D=M
         
-                @('Class2', '.vm').0
+                @Class2.0
                 M=D
                 
                 @ARG
@@ -998,7 +998,7 @@
         A=M
         D=M
         
-                @('Class2', '.vm').1
+                @Class2.1
                 M=D
                 
                 @0
@@ -1088,15 +1088,15 @@
         A=M
         0;JMP
         
-        (('Class2', '.vm')$Class2.get)
+        (Class2.get)
         
         @0
         D=A
         @R13
         M=D
 
-        (('Class2', '.vm')$SETUPLOOP.Class2.get)
-        @('Class2', '.vm')$ENDSETUP.Class2.get
+        (Class2$SETUPLOOP.Class2.get)
+        @Class2$ENDSETUP.Class2.get
         D;JEQ
         
                 @LCL
@@ -1118,14 +1118,14 @@
                 
         @R13
         MD=M-1
-        @('Class2', '.vm')$SETUPLOOP.Class2.get
+        @Class2$SETUPLOOP.Class2.get
         0;JMP
         
-        (('Class2', '.vm')$ENDSETUP.Class2.get)
+        (Class2$ENDSETUP.Class2.get)
         
                 // the first time this symbol is encountered (whether in push or pop)
                 // it will be mapped to the next free RAM register starting from R16
-                @('Class2', '.vm').0
+                @Class2.0
                 D=M
 
                 
@@ -1141,7 +1141,7 @@
                 
                 // the first time this symbol is encountered (whether in push or pop)
                 // it will be mapped to the next free RAM register starting from R16
-                @('Class2', '.vm').1
+                @Class2.1
                 D=M
 
                 

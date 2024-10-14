@@ -287,7 +287,7 @@ class CodeWriter:
         # push 0 num_local times
         
         asm = f'''
-        ({self.name}${function_name})
+        ({function_name})
         
         @{num_locals}
         D=A
@@ -359,7 +359,7 @@ class CodeWriter:
         @LCL
         M=D
 
-        @{self.name}${function_name}
+        @{function_name}
         0;JMP
         
         ({self.name}$RETURN.{key})

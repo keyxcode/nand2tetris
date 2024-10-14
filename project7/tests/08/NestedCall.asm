@@ -6,7 +6,7 @@
         
         
         
-                @NestedCall$RETURN.0
+                @$RETURN.0
                 D=A
 
                 
@@ -87,21 +87,21 @@
         @LCL
         M=D
 
-        @NestedCall$Sys.init
+        @Sys.init
         0;JMP
         
-        (NestedCall$RETURN.0)
+        ($RETURN.0)
         
         
-        (NestedCall$Sys.init)
+        (Sys.init)
         
         @0
         D=A
         @R13
         M=D
 
-        (NestedCall$SETUPLOOP.Sys.init)
-        @NestedCall$ENDSETUP.Sys.init
+        (Sys$SETUPLOOP.Sys.init)
+        @Sys$ENDSETUP.Sys.init
         D;JEQ
         
                 @LCL
@@ -123,10 +123,10 @@
                 
         @R13
         MD=M-1
-        @NestedCall$SETUPLOOP.Sys.init
+        @Sys$SETUPLOOP.Sys.init
         0;JMP
         
-        (NestedCall$ENDSETUP.Sys.init)
+        (Sys$ENDSETUP.Sys.init)
         
                 @4000
                 D=A
@@ -203,7 +203,7 @@
                 M=D
                 
         
-                @NestedCall$RETURN.11
+                @Sys$RETURN.11
                 D=A
 
                 
@@ -284,10 +284,10 @@
         @LCL
         M=D
 
-        @NestedCall$Sys.main
+        @Sys.main
         0;JMP
         
-        (NestedCall$RETURN.11)
+        (Sys$RETURN.11)
         
                 // get the exact address we want to go to
                 @5
@@ -311,19 +311,19 @@
                 @R13
                 A=M
                 M=D
-                (NestedCall$LOOP)
-        @NestedCall$LOOP
+                (Sys$LOOP)
+        @Sys$LOOP
         0;JMP
         
-        (NestedCall$Sys.main)
+        (Sys.main)
         
         @5
         D=A
         @R13
         M=D
 
-        (NestedCall$SETUPLOOP.Sys.main)
-        @NestedCall$ENDSETUP.Sys.main
+        (Sys$SETUPLOOP.Sys.main)
+        @Sys$ENDSETUP.Sys.main
         D;JEQ
         
                 @LCL
@@ -345,10 +345,10 @@
                 
         @R13
         MD=M-1
-        @NestedCall$SETUPLOOP.Sys.main
+        @Sys$SETUPLOOP.Sys.main
         0;JMP
         
-        (NestedCall$ENDSETUP.Sys.main)
+        (Sys$ENDSETUP.Sys.main)
         
                 @4001
                 D=A
@@ -550,7 +550,7 @@
         
                 
         
-                @NestedCall$RETURN.34
+                @Sys$RETURN.34
                 D=A
 
                 
@@ -631,10 +631,10 @@
         @LCL
         M=D
 
-        @NestedCall$Sys.add12
+        @Sys.add12
         0;JMP
         
-        (NestedCall$RETURN.34)
+        (Sys$RETURN.34)
         
                 // get the exact address we want to go to
                 @5
@@ -893,15 +893,15 @@
         A=M
         0;JMP
         
-        (NestedCall$Sys.add12)
+        (Sys.add12)
         
         @0
         D=A
         @R13
         M=D
 
-        (NestedCall$SETUPLOOP.Sys.add12)
-        @NestedCall$ENDSETUP.Sys.add12
+        (Sys$SETUPLOOP.Sys.add12)
+        @Sys$ENDSETUP.Sys.add12
         D;JEQ
         
                 @LCL
@@ -923,10 +923,10 @@
                 
         @R13
         MD=M-1
-        @NestedCall$SETUPLOOP.Sys.add12
+        @Sys$SETUPLOOP.Sys.add12
         0;JMP
         
-        (NestedCall$ENDSETUP.Sys.add12)
+        (Sys$ENDSETUP.Sys.add12)
         
                 @4002
                 D=A

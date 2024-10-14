@@ -65,7 +65,6 @@ class VMTranslator:
         which is written to the output file.
         """
         if self.code_writer.name == "": # is dir
-            print(self.code_writer.name)
             with open(self.out_filename, "w") as outfile:
                 outfile.write(self.code_writer.write_init())
 
