@@ -1,0 +1,9 @@
+class Main {
+    function void main() {
+        do Output.printInt(Utils.pow(2, 5));
+        do Output.println();
+        do Output.printInt(Utils.mod(2, 5));
+
+        return;
+    }
+}
