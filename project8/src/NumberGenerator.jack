@@ -1,0 +1,31 @@
+class NumberGenerator {
+    // pseudo random number generator using LCG algo with small constants
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator
+
+    field int seed;
+    field int m; // modulus
+    field int a; // multiplier
+    field int c; // increment
+
+    constructor NumberGenerator new(int userSeed) {
+        let seed = userSeed;
+        let m = 256;
+        let a = 75;
+        let c = 7;
+
+        return this;
+    }
+
+    method int next() {
+        let seed = Utils.mod(((a * seed) + c), m);
+
+        return seed;
+    }
+
+    method int generate(int minVal, int maxVal) {
+        var int range;
+        let range = maxVal - minVal + 1;
+
+        return Utils.mod((minVal + Utils.mod(next(), range)), range);
+    }
+}
