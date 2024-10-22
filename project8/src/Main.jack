@@ -7,10 +7,13 @@ class Main {
 
         let playAgain = 1;
         while (playAgain = 1) {
-            do Utils.printString("Welcome to the Number Guessing Game. Let's first set a minimum and maximum range.");
+            do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
 
-            let min = Keyboard.readInt("Enter minimum value: ");
-            let max = Keyboard.readInt("Enter maximum value: ");
+            do Utils.printString("Welcome to the Number Guessing Game");
+
+            let min = Keyboard.readInt("Let's first set the minimum value for the target: ");
+            let max = Keyboard.readInt("And the maximum value: ");
             while (max < min) {
                 let max = Keyboard.readInt("Maximum value must be greater than  minimum value: ");
             }
@@ -22,7 +25,7 @@ class Main {
             do Output.println();
         }
 
-        do Output.printString("Bye bye");
+        do Output.printString("Bye bye!");
 
         return;
     }

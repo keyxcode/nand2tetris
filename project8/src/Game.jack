@@ -4,7 +4,7 @@ class Game {
 
     constructor Game new(int min, int max) {
         // create a new guessing game with a random target number ranging from min to max
-        let generator = NumberGenerator.new(42); // random seed
+        let generator = NumberGenerator.new(42); // hard coded random seed
         let target = generator.generate(min, max);
         
         return this;
