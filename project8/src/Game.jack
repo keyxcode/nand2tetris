@@ -1,0 +1,43 @@
+class Game {
+    field NumberGenerator generator;
+    field int target;
+
+    constructor Game new(int min, int max) {
+        // create a new guessing game with a random target number ranging from min to max
+        let generator = NumberGenerator.new(42); // random seed
+        let target = generator.generate(min, max);
+        
+        return this;
+    }
+
+    method void playRound() {
+        var int guess;
+        var boolean isCorrect;
+
+        let isCorrect = false;
+        while (~isCorrect) {
+            let guess = Keyboard.readInt("Guess a number: ");
+            let isCorrect = checkGuess(guess);
+        }
+
+        return;
+    }
+
+    method boolean checkGuess(int guess) {
+        if (guess < target) {
+            do Output.printString("Higher!");
+            do Output.println();
+            return false;
+        } else {
+            if (guess > target) {
+                do Output.printString("Lower!");
+                do Output.println();
+                return false;
+            } else {
+                do Output.printString("Correct! You guessed it.");
+                do Output.println();
+                return true;
+            }
+        }
+    }
+}

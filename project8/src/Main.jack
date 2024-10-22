@@ -1,20 +1,8 @@
 class Main {
     function void main() {
-        var NumberGenerator numberGenerator;
-        var int MIN_VAL;
-        var int MAX_VAL;
-        var int i;
-
-        let MIN_VAL = 0;
-        let MAX_VAL = 100;
-
-        let numberGenerator = NumberGenerator.new(12);
-        let i = 0;
-        while (i < 10) {
-            do Output.printInt(numberGenerator.generate(MIN_VAL, MAX_VAL));
-            do Output.println();
-            let i = i + 1;
-        }
+        var Game game;
+        let game = Game.new(0, 100);
+        do game.playRound();
 
         return;
     }

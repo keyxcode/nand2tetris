@@ -22,10 +22,11 @@ class NumberGenerator {
         return seed;
     }
 
-    method int generate(int minVal, int maxVal) {
+    method int generate(int min, int max) {
+        // generate random value within [min, max]
         var int range;
-        let range = maxVal - minVal + 1;
+        let range = max - min + 1;
 
-        return Utils.mod((minVal + Utils.mod(next(), range)), range);
+        return Utils.mod((min + Utils.mod(next(), range)), range);
     }
 }
