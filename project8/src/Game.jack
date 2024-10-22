@@ -25,17 +25,14 @@ class Game {
 
     method boolean checkGuess(int guess) {
         if (guess < target) {
-            do Output.printString("Higher!");
-            do Output.println();
+            do Utils.printString("Higher!");            
             return false;
         } else {
             if (guess > target) {
-                do Output.printString("Lower!");
-                do Output.println();
+                do Utils.printString("Lower!");                
                 return false;
             } else {
-                do Output.printString("Correct! You guessed it.");
-                do Output.println();
+                do Utils.printString("Correct! You guessed it.");                
                 return true;
             }
         }

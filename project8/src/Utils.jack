@@ -33,4 +33,12 @@ class Utils {
 
         return res;
     }
+
+    function void printString(String message) {
+        // print with auto new line
+        do Output.printString(message);
+        do Output.println();
+
+        return;
+    }
 }

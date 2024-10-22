@@ -1,8 +1,28 @@
 class Main {
     function void main() {
+        var int playAgain;
         var Game game;
-        let game = Game.new(0, 100);
-        do game.playRound();
+        var int min;
+        var int max;
+
+        let playAgain = 1;
+        while (playAgain = 1) {
+            do Utils.printString("Welcome to the Number Guessing Game. Let's first set a minimum and maximum range.");
+
+            let min = Keyboard.readInt("Enter minimum value: ");
+            let max = Keyboard.readInt("Enter maximum value: ");
+            while (max < min) {
+                let max = Keyboard.readInt("Maximum value must be greater than  minimum value: ");
+            }
+
+            let game = Game.new(min, max);
+            do game.playRound();
+
+            let playAgain = Keyboard.readInt("Play again? (1 for Yes, any other key for No): ");
+            do Output.println();
+        }
+
+        do Output.printString("Bye bye");
 
         return;
     }
