@@ -15,7 +15,7 @@ class Main {
             let min = Keyboard.readInt("Let's first set the minimum value for the target: ");
             let max = Keyboard.readInt("And the maximum value: ");
             while (max < min) {
-                let max = Keyboard.readInt("Maximum value must be greater than  minimum value: ");
+                let max = Keyboard.readInt("Maximum value must be greater than minimum value: ");
             }
 
             let game = Game.new(min, max);

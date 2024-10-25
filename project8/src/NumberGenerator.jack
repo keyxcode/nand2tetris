@@ -26,7 +26,6 @@ class NumberGenerator {
         // generate random value within [min, max]
         var int range;
         let range = max - min + 1;
-
-        return Utils.mod((min + Utils.mod(next(), range)), range);
+        return min + Utils.mod(next(), range);
     }
 }
