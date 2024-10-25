@@ -2,15 +2,15 @@ class Game {
     field NumberGenerator generator;
     field int target;
 
-    constructor Game new(int min, int max) {
+    constructor Game new(int min, int max, int seed) {
         // create a new guessing game with a random target number ranging from min to max
-        let generator = NumberGenerator.new(42); // hard coded random seed
+        let generator = NumberGenerator.new(seed);
         let target = generator.generate(min, max);
         
         return this;
     }
 
-    method void playRound() {
+    method void play() {
         var int guess;
         var boolean isCorrect;
 

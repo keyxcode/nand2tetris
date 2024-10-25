@@ -1,18 +1,4 @@
 class Utils {
-    function int pow(int num, int power) {
-        var int i;
-        var int res;
-
-        let i = 0;
-        let res = 1;
-        while (i < power) {
-            let res = res * num;
-            let i = i + 1;
-        }
-
-        return res;
-    }
-
     function int mod(int dividend, int divisor) {
         var int res;
         var boolean isNeg;

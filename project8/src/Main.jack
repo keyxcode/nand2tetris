@@ -4,7 +4,13 @@ class Main {
         var Game game;
         var int min;
         var int max;
+        
+        // use a random seed generator to pass into the game object for 2 to introduce more randomness
+        // the game object itself has a generator to generate the actual target number
+        var NumberGenerator seedGenerator;
+        var int seed;
 
+        let seedGenerator = NumberGenerator.new(42); // hard coded seed
         let playAgain = 1;
         while (playAgain = 1) {
             do Screen.clearScreen();
@@ -18,8 +24,9 @@ class Main {
                 let max = Keyboard.readInt("Maximum value must be greater than minimum value: ");
             }
 
-            let game = Game.new(min, max);
-            do game.playRound();
+            let seed = seedGenerator.generate(0, 100); // hard coded range [0, 100] for the seed
+            let game = Game.new(min, max, seed);
+            do game.play();
 
             let playAgain = Keyboard.readInt("Play again? (1 for Yes, any other key for No): ");
             do Output.println();
