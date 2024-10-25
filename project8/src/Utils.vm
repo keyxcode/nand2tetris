@@ -1,0 +1,48 @@
+function Utils.mod 2
+    push argument 0
+    push constant 0
+    lt
+    pop local 1
+    push local 1
+    not
+    if-goto Utils_1
+    push argument 0
+    neg
+    pop argument 0
+    goto Utils_0
+label Utils_1
+label Utils_0
+    push argument 0
+    pop local 0
+label Utils_2
+    push local 0
+    push argument 1
+    lt
+    not
+    not
+    if-goto Utils_3
+    push local 0
+    push argument 1
+    sub
+    pop local 0
+    goto Utils_2
+label Utils_3
+    push local 1
+    not
+    if-goto Utils_5
+    push local 0
+    neg
+    pop local 0
+    goto Utils_4
+label Utils_5
+label Utils_4
+    push local 0
+    return
+function Utils.printString 0
+    push argument 0
+    call Output.printString 1
+    pop temp 0
+    call Output.println 0
+    pop temp 0
+    push constant 0
+    return
