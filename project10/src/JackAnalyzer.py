@@ -11,7 +11,7 @@ def main():
         sys.exit(1)
     
     tokenizer = JackTokenizer(sys.argv[1])
-    tokenizer.parse()
+    tokenizer.get_token()
 
 
 if __name__ == "__main__":
