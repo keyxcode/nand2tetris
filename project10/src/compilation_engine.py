@@ -55,6 +55,9 @@ class CompilationEngine:
         self.outfile.write("</parameterList>\n")
         self._write_tag(self.tokenizer.use_token()) # )
 
+        self.compile_subroutine_body()
+
+    def compile_subroutine_body(self):
         self.outfile.write("<subroutineBody>\n")
         self._write_tag(self.tokenizer.use_token()) # {
         self.compile_var_dec()
@@ -160,8 +163,23 @@ class CompilationEngine:
         self.compile_statements()
         self._write_tag(self.tokenizer.use_token()) # }
 
+        self.outfile.write("</whileStatement>\n")
+
     def compile_do(self):
-        pass
+        self.outfile.write("<doStatement>\n")
+        self._write_tag(self.tokenizer.use_token()) # do
+
+        self._write_tag(self.tokenizer.use_token()) # subroutineName | (className | varName)
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == ".":
+            self._write_tag(self.tokenizer.use_token()) # .
+            self._write_tag(self.tokenizer.use_token()) # subroutineName
+
+        self._write_tag(self.tokenizer.use_token()) # (
+        self.compile_expression_list()
+        self._write_tag(self.tokenizer.use_token()) # )
+
+        self.outfile.write("</doStatement>\n")
 
     def compile_return(self):
         self.outfile.write("<returnStatement>\n")
