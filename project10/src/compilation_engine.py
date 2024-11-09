@@ -92,26 +92,87 @@ class CompilationEngine:
             
             self._write_tag(self.tokenizer.use_token()) # ;
             self.outfile.write("</varDec>\n")
-            
+
             self.tokenizer.buffer_token()
 
     def compile_statements(self):
-        pass
+        self.tokenizer.buffer_token()
+
+        match self.tokenizer.peek_token():
+            case "let":
+                self.compile_let()
+            case "if":
+                self.compile_if()
+            case "while":
+                self.compile_while()
+            case "do":
+                self.compile_do()
+            case "return":
+                self.compile_return()
+
+    def compile_let(self):
+        self.outfile.write("<letStatement>\n")
+        self._write_tag(self.tokenizer.use_token()) # let
+        self._write_tag(self.tokenizer.use_token()) # varName
+
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == "[":
+            self._write_tag(self.tokenizer.use_token()) # [
+            self.compile_expression()
+            self._write_tag(self.tokenizer.use_token()) # ]
+
+        self._write_tag(self.tokenizer.use_token()) # =
+        self.compile_expression()
+
+        self._write_tag(self.tokenizer.use_token()) # ;
+        self.outfile.write("</letStatement>\n")
+
+    def compile_if(self):
+        self.outfile.write("<ifStatement>\n")
+        self._write_tag(self.tokenizer.use_token()) # if
+        
+        self._write_tag(self.tokenizer.use_token()) # (
+        self.compile_expression()
+        self._write_tag(self.tokenizer.use_token()) # )
+
+        self._write_tag(self.tokenizer.use_token()) # {
+        self.compile_statements()
+        self._write_tag(self.tokenizer.use_token()) # }
+
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == "else":
+            self._write_tag(self.tokenizer.use_token()) # else
+            self._write_tag(self.tokenizer.use_token()) # {
+            self.compile_statements()
+            self._write_tag(self.tokenizer.use_token()) # }
+        
+        self.outfile.write("</ifStatement>\n")
+
+    def compile_while(self):
+        self.outfile.write("<whileStatement>\n")
+        self._write_tag(self.tokenizer.use_token()) # while
+
+        self._write_tag(self.tokenizer.use_token()) # (
+        self.compile_expression()
+        self._write_tag(self.tokenizer.use_token()) # )
+
+        self._write_tag(self.tokenizer.use_token()) # {
+        self.compile_statements()
+        self._write_tag(self.tokenizer.use_token()) # }
 
     def compile_do(self):
         pass
 
-    def compile_let(self):
-        pass
-
-    def compile_while(self):
-        pass
-    
     def compile_return(self):
-        pass
-
-    def compile_if(self):
-        pass
+        self.outfile.write("<returnStatement>\n")
+        self._write_tag(self.tokenizer.use_token()) # return
+        
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() != ";":
+            self.compile_expression()
+        
+        self._write_tag(self.tokenizer.use_token()) # ;
+        self.outfile.write("</returnStatement>\n")
 
     def compile_expression(self):
         pass
