@@ -18,7 +18,10 @@ class JackTokenizer:
 
     def buffer_token(self) -> None:
         # call generator next and store it in the token queue
-        self.buffer.append(next(self.token_generator))
+        try:
+            self.buffer.append(next(self.token_generator))
+        except:
+            pass
 
     def peek_token(self, idx: int = 0) -> None:
         # view token value in queue at idx, if there's any

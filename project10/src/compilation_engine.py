@@ -16,22 +16,20 @@ class CompilationEngine:
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("static", "field"):
-            self.outfile.write("<classVarDec>\n")
             self.compile_class_var_dec()
-            self.outfile.write("</classVarDec>\n")
             self.tokenizer.buffer_token()
 
         while self.tokenizer.peek_token() in ("constructor", "function", "method"):
-            self.outfile.write("<subroutineDec>\n")
             self.compile_subroutine_dec()
-            self.outfile.write("</subroutineDec>\n")
             self.tokenizer.buffer_token()
         
         self._write_tag(self.tokenizer.use_token()) # }
 
-        self.outfile.write("</class>")
+        self.outfile.write("</class>\n")
 
     def compile_class_var_dec(self):
+        self.outfile.write("<classVarDec>\n")
+
         self._write_tag(self.tokenizer.use_token()) # static | field
         self._write_tag(self.tokenizer.use_token()) # type: int | char | boolean | className
         self._write_tag(self.tokenizer.use_token()) # var name
@@ -43,8 +41,11 @@ class CompilationEngine:
             self.tokenizer.buffer_token()
         
         self._write_tag(self.tokenizer.use_token()) # ;
+        self.outfile.write("</classVarDec>\n")
 
     def compile_subroutine_dec(self):
+        self.outfile.write("<subroutineDec>\n")
+
         self._write_tag(self.tokenizer.use_token()) # constructor | function | method
         self._write_tag(self.tokenizer.use_token()) # void | type
         self._write_tag(self.tokenizer.use_token()) # subroutine name
@@ -56,12 +57,13 @@ class CompilationEngine:
         self._write_tag(self.tokenizer.use_token()) # )
 
         self.compile_subroutine_body()
+        self.outfile.write("</subroutineDec>\n")
 
     def compile_subroutine_body(self):
         self.outfile.write("<subroutineBody>\n")
         self._write_tag(self.tokenizer.use_token()) # {
         self.compile_var_dec()
-        # self.compile_statements()
+        self.compile_statements()
         self._write_tag(self.tokenizer.use_token()) # }
         self.outfile.write("</subroutineBody>\n")
 
@@ -98,20 +100,26 @@ class CompilationEngine:
 
             self.tokenizer.buffer_token()
 
-    def compile_statements(self):
+    def compile_statements(self): 
+        self.outfile.write("<statements>\n")
+        
         self.tokenizer.buffer_token()
-
-        match self.tokenizer.peek_token():
-            case "let":
-                self.compile_let()
-            case "if":
-                self.compile_if()
-            case "while":
-                self.compile_while()
-            case "do":
-                self.compile_do()
-            case "return":
-                self.compile_return()
+        while self.tokenizer.peek_token() in ("let", "if", "while", "do", "return"):
+            match self.tokenizer.peek_token():
+                case "let":
+                    self.compile_let()
+                case "if":
+                    self.compile_if()
+                case "while":
+                    self.compile_while()
+                case "do":
+                    self.compile_do()
+                case "return":
+                    self.compile_return()
+            
+            self.tokenizer.buffer_token()
+        
+        self.outfile.write("</statements>\n")
 
     def compile_let(self):
         self.outfile.write("<letStatement>\n")
@@ -179,6 +187,7 @@ class CompilationEngine:
         self.compile_expression_list()
         self._write_tag(self.tokenizer.use_token()) # )
 
+        self._write_tag(self.tokenizer.use_token()) # ;
         self.outfile.write("</doStatement>\n")
 
     def compile_return(self):
@@ -193,13 +202,64 @@ class CompilationEngine:
         self.outfile.write("</returnStatement>\n")
 
     def compile_expression(self):
-        pass
+        self.outfile.write("<expression>\n")
+        
+        self.compile_term()
+
+        self.tokenizer.buffer_token()
+        while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&", "|", "<", ">", "="):
+            self._write_tag(self.tokenizer.use_token()) # op
+            self.compile_term()
+            self.tokenizer.buffer_token()
+
+        self.outfile.write("</expression>\n")
 
     def compile_term(self):
-        pass
+        self.outfile.write("<term>\n")
+
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == "(": # (expression)
+            self._write_tag(self.tokenizer.use_token()) # (
+            self.compile_expression()
+            self._write_tag(self.tokenizer.use_token()) # )
+        elif self.tokenizer.peek_token() in ("-", "~"): # unaryOp term
+            self._write_tag(self.tokenizer.use_token()) # - | ~
+            self.compile_term()
+        else:
+            self._write_tag(self.tokenizer.use_token()) # intConst | strConst | keywordConst | varName
+            
+            self.tokenizer.buffer_token()
+            if self.tokenizer.peek_token() == "[":
+                self._write_tag(self.tokenizer.use_token()) # [
+                self.compile_expression()
+                self._write_tag(self.tokenizer.use_token()) # ]
+            elif self.tokenizer.peek_token() == "(":
+                self._write_tag(self.tokenizer.use_token()) # (
+                self.compile_expression_list()
+                self._write_tag(self.tokenizer.use_token()) # )
+            elif self.tokenizer.peek_token() == ".":
+                self._write_tag(self.tokenizer.use_token()) # .
+                self._write_tag(self.tokenizer.use_token()) # subroutineName
+                self._write_tag(self.tokenizer.use_token()) # (
+                self.compile_expression_list()
+                self._write_tag(self.tokenizer.use_token()) # )
+
+        self.outfile.write("</term>\n")
 
     def compile_expression_list(self):
-        pass
+        self.outfile.write("<expressionList>\n")
+        
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() != ")":
+            self.compile_expression()
+
+            self.tokenizer.buffer_token()
+            while self.tokenizer.peek_token() == ",":
+                self._write_tag(self.tokenizer.use_token()) # ,
+                self.compile_expression()
+                self.tokenizer.buffer_token()
+
+        self.outfile.write("</expressionList>\n")
 
     def _write_tag(self, token) -> str:
         token_type, token_value = token
