@@ -22,7 +22,9 @@ class CompilationEngine:
             self.tokenizer.buffer_token()
 
         while self.tokenizer.peek_token() in ("constructor", "function", "method"):
+            self.outfile.write("<subroutineDec>\n")
             self.compile_subroutine_dec()
+            self.outfile.write("</subroutineDec>\n")
             self.tokenizer.buffer_token()
         
         self._write_tag(self.tokenizer.use_token()) # }
@@ -42,19 +44,56 @@ class CompilationEngine:
         
         self._write_tag(self.tokenizer.use_token()) # ;
 
-
     def compile_subroutine_dec(self):
         self._write_tag(self.tokenizer.use_token()) # constructor | function | method
         self._write_tag(self.tokenizer.use_token()) # void | type
         self._write_tag(self.tokenizer.use_token()) # subroutine name
+        
+        self._write_tag(self.tokenizer.use_token()) # (
+        self.outfile.write("<parameterList>\n")
+        self.compile_parameter_list()
+        self.outfile.write("</parameterList>\n")
+        self._write_tag(self.tokenizer.use_token()) # )
 
-        # self.compile_parameter_list()
+        self.outfile.write("<subroutineBody>\n")
+        self._write_tag(self.tokenizer.use_token()) # {
+        self.compile_var_dec()
+        # self.compile_statements()
+        self._write_tag(self.tokenizer.use_token()) # }
+        self.outfile.write("</subroutineBody>\n")
 
     def compile_parameter_list(self):
-        pass
+        self.tokenizer.buffer_token()
+
+        while self.tokenizer.peek_token() != ")":
+            self._write_tag(self.tokenizer.use_token()) # type
+            self._write_tag(self.tokenizer.use_token()) # varName
+            
+            self.tokenizer.buffer_token()
+            while self.tokenizer.peek_token() == ",":
+                self._write_tag(self.tokenizer.use_token()) # ,
+                self._write_tag(self.tokenizer.use_token()) # type
+                self._write_tag(self.tokenizer.use_token()) # varName
+                self.tokenizer.buffer_token()
 
     def compile_var_dec(self):
-        pass
+        self.tokenizer.buffer_token()
+        while self.tokenizer.peek_token() == "var":
+            self.outfile.write("<varDec>\n")
+            self._write_tag(self.tokenizer.use_token()) # var
+            self._write_tag(self.tokenizer.use_token()) # type
+            self._write_tag(self.tokenizer.use_token()) # varName
+
+            self.tokenizer.buffer_token()
+            while self.tokenizer.peek_token() == ",":
+                self._write_tag(self.tokenizer.use_token()) # ,
+                self._write_tag(self.tokenizer.use_token()) # varName
+                self.tokenizer.buffer_token()
+            
+            self._write_tag(self.tokenizer.use_token()) # ;
+            self.outfile.write("</varDec>\n")
+            
+            self.tokenizer.buffer_token()
 
     def compile_statements(self):
         pass

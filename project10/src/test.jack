@@ -1,4 +1,16 @@
 class SquareGame {
-   field Square square; 
-   field int direction; 
+   field Square square; // the square of this game
+   field int direction; // the square's current direction: 
+                        // 0=none, 1=up, 2=down, 3=left, 4=right
+
+   /** Constructs a new Square Game. */
+   constructor SquareGame new() {
+      // Creates a 30 by 30 pixels square and positions it at the top-left
+      // of the screen.
+   }
+
+   method void run() {
+      var char key;  // the key currently pressed by the user
+      var boolean exit;
+   }
 }
