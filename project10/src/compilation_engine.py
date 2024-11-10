@@ -105,17 +105,30 @@ class CompilationEngine:
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("let", "if", "while", "do", "return"):
-            match self.tokenizer.peek_token():
-                case "let":
-                    self.compile_let()
-                case "if":
-                    self.compile_if()
-                case "while":
-                    self.compile_while()
-                case "do":
-                    self.compile_do()
-                case "return":
-                    self.compile_return()
+            peek_token = self.tokenizer.peek_token()
+
+            if peek_token == "let":
+                self.compile_let()
+            elif peek_token == "if":
+                self.compile_if()
+            elif peek_token == "while":
+                self.compile_while()
+            elif peek_token == "do":
+                self.compile_do()
+            elif peek_token == "return":
+                self.compile_return()
+
+            # match self.tokenizer.peek_token():
+            #     case "let":
+            #         self.compile_let()
+            #     case "if":
+            #         self.compile_if()
+            #     case "while":
+            #         self.compile_while()
+            #     case "do":
+            #         self.compile_do()
+            #     case "return":
+            #         self.compile_return()
             
             self.tokenizer.buffer_token()
         
@@ -264,17 +277,28 @@ class CompilationEngine:
     def _write_tag(self, token) -> str:
         token_type, token_value = token
 
-        match token_type:
-            case "KEYWORD":
-                token_tag = "keyword"
-            case "SYMBOL":
-                token_tag = "symbol"
-            case "INT_CONST":
-                token_tag = "integerConstant"
-            case "STRING_CONST":
-                token_tag = "stringConstant"
-            case _:
-                token_tag = "identifier"
+        if token_type == "KEYWORD":
+            token_tag = "keyword"
+        elif token_type == "SYMBOL":
+            token_tag = "symbol"
+        elif token_type == "INT_CONST":
+            token_tag = "integerConstant"
+        elif token_type == "STRING_CONST":
+            token_tag = "stringConstant"
+        else:
+            token_tag = "identifier"
+
+        # match token_type:
+        #     case "KEYWORD":
+        #         token_tag = "keyword"
+        #     case "SYMBOL":
+        #         token_tag = "symbol"
+        #     case "INT_CONST":
+        #         token_tag = "integerConstant"
+        #     case "STRING_CONST":
+        #         token_tag = "stringConstant"
+        #     case _:
+        #         token_tag = "identifier"
         
         self.outfile.write(f"<{token_tag}> ")
         self.outfile.write(f"{token_value}")

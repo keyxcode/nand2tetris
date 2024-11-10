@@ -67,33 +67,55 @@ class JackTokenizer:
             return "IDENTIFIER"
 
     def get_token_value(self, token: str, token_type: str) -> Union[str, int]:
-        match token_type:
-            case "KEYWORD":
-                return self._keyword_val(token)
-            case "SYMBOL":
-                return self._symbol_val(token)
-            case "INT_CONST":
-                return self._int_val(token)
-            case "STRING_CONST":
-                return self._string_val(token)
-            case "IDENTIFIER":
-                return self._identifier_val(token)
+        if token_type == "KEYWORD":
+            return self._keyword_val(token)
+        elif token_type == "SYMBOL":
+            return self._symbol_val(token)
+        elif token_type == "INT_CONST":
+            return self._int_val(token)
+        elif token_type == "STRING_CONST":
+            return self._string_val(token)
+        elif token_type == "IDENTIFIER":
+            return self._identifier_val(token)
+
+        # match token_type:
+        #     case "KEYWORD":
+        #         return self._keyword_val(token)
+        #     case "SYMBOL":
+        #         return self._symbol_val(token)
+        #     case "INT_CONST":
+        #         return self._int_val(token)
+        #     case "STRING_CONST":
+        #         return self._string_val(token)
+        #     case "IDENTIFIER":
+        #         return self._identifier_val(token)
 
     def _keyword_val(self, token: str) -> str:
         return token
 
     def _symbol_val(self, token: str) -> str:
-        match token:
-            case "<":
-                return "&lt;"
-            case ">":
-                return "&gt;"
-            case '"':
-                return "&quot;"
-            case "&":
-                return "&amp;"
-            case _:
-                return token
+        if token == "<":
+            return "&lt;"
+        elif token == ">":
+            return "&gt;"
+        elif token == '"':
+            return "&quot;"
+        elif token == "&":
+            return "&amp;"
+        else:
+            return token
+            
+        # match token:
+        #     case "<":
+        #         return "&lt;"
+        #     case ">":
+        #         return "&gt;"
+        #     case '"':
+        #         return "&quot;"
+        #     case "&":
+        #         return "&amp;"
+        #     case _:
+        #         return token
 
     def _int_val(self, token: str) -> int:
         return int(token)
