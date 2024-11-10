@@ -19,7 +19,7 @@ def main():
     for jack_filename in jack_filenames:
         # add M here to distinguish with the given parsed test file
         # need to remove later
-        out_filename = os.path.splitext(jack_filename)[0] + "M.xml"
+        out_filename = os.path.splitext(jack_filename)[0] + ".xml"
         
         with open(jack_filename, "r") as infile, open(out_filename, "a") as outfile:
             compilation_engine = CompilationEngine(infile, outfile)

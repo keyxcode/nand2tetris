@@ -207,7 +207,7 @@ class CompilationEngine:
         self.compile_term()
 
         self.tokenizer.buffer_token()
-        while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&", "|", "<", ">", "="):
+        while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="):
             self._write_tag(self.tokenizer.use_token()) # op
             self.compile_term()
             self.tokenizer.buffer_token()
@@ -229,15 +229,15 @@ class CompilationEngine:
             self._write_tag(self.tokenizer.use_token()) # intConst | strConst | keywordConst | varName
             
             self.tokenizer.buffer_token()
-            if self.tokenizer.peek_token() == "[":
+            if self.tokenizer.peek_token() == "[": # varName[expression]
                 self._write_tag(self.tokenizer.use_token()) # [
                 self.compile_expression()
                 self._write_tag(self.tokenizer.use_token()) # ]
-            elif self.tokenizer.peek_token() == "(":
+            elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
                 self._write_tag(self.tokenizer.use_token()) # (
                 self.compile_expression_list()
                 self._write_tag(self.tokenizer.use_token()) # )
-            elif self.tokenizer.peek_token() == ".":
+            elif self.tokenizer.peek_token() == ".": # (className | varName).subroutineName(expressionList)
                 self._write_tag(self.tokenizer.use_token()) # .
                 self._write_tag(self.tokenizer.use_token()) # subroutineName
                 self._write_tag(self.tokenizer.use_token()) # (
