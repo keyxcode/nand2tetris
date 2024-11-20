@@ -1,11 +1,13 @@
-from jack_tokenizer import JackTokenizer
+from jack_tokenizer import JackTokenizer, TokenTuple
 from typing import TextIO
+from symbol_table import SymbolTable
 
 class CompilationEngine:
     def __init__(self, infile: TextIO, outfile: TextIO):
         self.infile = infile
         self.outfile = outfile
         self.tokenizer = JackTokenizer(infile)
+        self.symbol_table = SymbolTable()
 
     def compile_class(self):
         self.outfile.write("<class>\n")
@@ -30,14 +32,20 @@ class CompilationEngine:
     def compile_class_var_dec(self):
         self.outfile.write("<classVarDec>\n")
 
-        self._write_tag(self.tokenizer.use_token()) # static | field
-        self._write_tag(self.tokenizer.use_token()) # type: int | char | boolean | className
-        self._write_tag(self.tokenizer.use_token()) # var name
+        kind_token = self.tokenizer.use_token()
+        self._write_tag(kind_token) # static | field
+        type_token = self.tokenizer.use_token()
+        self._write_tag(type_token) # type: int | char | boolean | className
+        name_token = self.tokenizer.use_token()
+        self.symbol_table.define(name_token[1], type_token[1], kind_token[1])
+        self._write_tag(name_token) # varName
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == ",":
             self._write_tag(self.tokenizer.use_token()) # ,
-            self._write_tag(self.tokenizer.use_token()) # varName
+            name_token = self.tokenizer.use_token()
+            self.symbol_table.define(name_token[1], type_token[1], kind_token[1])
+            self._write_tag(name_token) # varName
             self.tokenizer.buffer_token()
         
         self._write_tag(self.tokenizer.use_token()) # ;
@@ -262,7 +270,7 @@ class CompilationEngine:
 
         self.outfile.write("</expressionList>\n")
 
-    def _write_tag(self, token) -> str:
+    def _write_tag(self, token: TokenTuple) -> str:
         token_type, token_value = token
 
         if token_type == "KEYWORD":
@@ -276,6 +284,10 @@ class CompilationEngine:
         else:
             token_tag = "identifier"
         
-        self.outfile.write(f"<{token_tag}> ")
+        if token_tag == "identifier" and self.symbol_table.get_kind_of(token_value):
+            attributes = f"kind={self.symbol_table.get_kind_of(token_value)} type={self.symbol_table.get_type_of(token_value)} idx={self.symbol_table.get_index_of(token_value)}"
+            self.outfile.write(f"<{token_tag} {attributes}> ")
+        else:
+            self.outfile.write(f"<{token_tag}> ")
         self.outfile.write(f"{token_value}")
         self.outfile.write(f" </{token_tag}>\n")

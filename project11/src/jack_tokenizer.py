@@ -1,6 +1,9 @@
 import re
 from collections import deque
-from typing import Union, Tuple, Iterator, TextIO
+from typing import Union, Tuple, Iterator, TextIO, Literal
+
+TokenType = Literal["KEYWORD", "SYMBOL", "INT_CONST", "STRING_CONST", "IDENTIFIER"]
+TokenTuple = Tuple[TokenType, str]
 
 class JackTokenizer:
     def __init__(self, infile: TextIO):
@@ -8,7 +11,7 @@ class JackTokenizer:
         self.buffer = deque()
         self.token_generator = self.generate_token()
 
-    def use_token(self) -> None:
+    def use_token(self) -> TokenTuple:
         # pop the first token in the buffer if there's any
         # if buffer is empty, use the generator next
         if self.buffer:
@@ -27,7 +30,7 @@ class JackTokenizer:
         # view token value in queue at idx, if there's any
         return self.buffer[idx][1]
 
-    def generate_token(self) -> Iterator[Tuple[Union[int, str], str]]:
+    def generate_token(self) -> Iterator[TokenTuple]:
         keyword_pattern = r"\b(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)\b"
         symbol_pattern = r"[{}()\[\].,;+\-*/&|<>=~]"
         integer_constant_pattern = r"\b(0|[1-9]\d{0,4})\b"
@@ -53,7 +56,7 @@ class JackTokenizer:
         
         return re.sub(pattern, '', code, flags=re.DOTALL | re.MULTILINE).strip()
 
-    def get_token_type(self, token: str) -> str:
+    def get_token_type(self, token: str) -> TokenType:
         if token in ("class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", 
                                   "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"):
             return "KEYWORD"
@@ -66,7 +69,7 @@ class JackTokenizer:
         else:
             return "IDENTIFIER"
 
-    def get_token_value(self, token: str, token_type: str) -> Union[str, int]:
+    def get_token_value(self, token: str, token_type: TokenType) -> Union[str, int]:
         if token_type == "KEYWORD":
             return self._keyword_val(token)
         elif token_type == "SYMBOL":
