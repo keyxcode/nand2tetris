@@ -6,6 +6,7 @@ class CompilationEngine:
     def __init__(self, infile: TextIO, outfile: TextIO):
         self.infile = infile
         self.outfile = outfile
+        self.class_name = None
         self.tokenizer = JackTokenizer(infile)
         self.symbol_table = SymbolTable()
 
@@ -13,7 +14,9 @@ class CompilationEngine:
         self.outfile.write("<class>\n")
 
         self._write_tag(self.tokenizer.use_token()) # class
-        self._write_tag(self.tokenizer.use_token()) # class name
+        class_name_token = self.tokenizer.use_token()
+        self.class_name = class_name_token[1]
+        self._write_tag(class_name_token) # class name
         self._write_tag(self.tokenizer.use_token()) # {
         
         self.tokenizer.buffer_token()
@@ -52,9 +55,15 @@ class CompilationEngine:
         self.outfile.write("</classVarDec>\n")
 
     def compile_subroutine_dec(self):
+        self.symbol_table.start_subroutine()
+
         self.outfile.write("<subroutineDec>\n")
 
-        self._write_tag(self.tokenizer.use_token()) # constructor | function | method
+        function_kind_token = self.tokenizer.use_token()
+        if function_kind_token[1] == "method":
+            self.symbol_table.define("this", self.class_name, "arg")
+
+        self._write_tag(function_kind_token) # constructor | function | method
         self._write_tag(self.tokenizer.use_token()) # void | type
         self._write_tag(self.tokenizer.use_token()) # subroutine name
         
@@ -79,14 +88,20 @@ class CompilationEngine:
         self.tokenizer.buffer_token()
 
         while self.tokenizer.peek_token() != ")":
-            self._write_tag(self.tokenizer.use_token()) # type
-            self._write_tag(self.tokenizer.use_token()) # varName
+            type_token = self.tokenizer.use_token()
+            self._write_tag(type_token) # type
+            name_token = self.tokenizer.use_token()
+            self.symbol_table.define(name_token[1], type_token[1], "arg")
+            self._write_tag(name_token) # varName
             
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
                 self._write_tag(self.tokenizer.use_token()) # ,
-                self._write_tag(self.tokenizer.use_token()) # type
-                self._write_tag(self.tokenizer.use_token()) # varName
+                type_token = self.tokenizer.use_token()
+                self._write_tag(type_token) # type
+                name_token = self.tokenizer.use_token()
+                self.symbol_table.define(name_token[1], type_token[1], "arg")
+                self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
 
     def compile_var_dec(self):
@@ -94,13 +109,18 @@ class CompilationEngine:
         while self.tokenizer.peek_token() == "var":
             self.outfile.write("<varDec>\n")
             self._write_tag(self.tokenizer.use_token()) # var
-            self._write_tag(self.tokenizer.use_token()) # type
-            self._write_tag(self.tokenizer.use_token()) # varName
+            type_token = self.tokenizer.use_token()
+            self._write_tag(type_token) # type
+            name_token = self.tokenizer.use_token()
+            self.symbol_table.define(name_token[1], type_token[1], "var")
+            self._write_tag(name_token) # varName
 
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
                 self._write_tag(self.tokenizer.use_token()) # ,
-                self._write_tag(self.tokenizer.use_token()) # varName
+                name_token = self.tokenizer.use_token()
+                self.symbol_table.define(name_token[1], type_token[1], "var")
+                self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
             
             self._write_tag(self.tokenizer.use_token()) # ;
