@@ -3,15 +3,17 @@ from typing import TextIO
 from symbol_table import SymbolTable
 
 class CompilationEngine:
-    def __init__(self, infile: TextIO, outfile: TextIO):
+    def __init__(self, infile: TextIO, xml_out: TextIO, vm_out: TextIO):
         self.infile = infile
-        self.outfile = outfile
+        self.xml_out = xml_out
+        self.vm_out = vm_out
+
         self.class_name = None
         self.tokenizer = JackTokenizer(infile)
         self.symbol_table = SymbolTable()
 
     def compile_class(self):
-        self.outfile.write("<class>\n")
+        self.xml_out.write("<class>\n")
 
         self._write_tag(self.tokenizer.use_token()) # class
         class_name_token = self.tokenizer.use_token()
@@ -30,10 +32,10 @@ class CompilationEngine:
         
         self._write_tag(self.tokenizer.use_token()) # }
 
-        self.outfile.write("</class>\n")
+        self.xml_out.write("</class>\n")
 
     def compile_class_var_dec(self):
-        self.outfile.write("<classVarDec>\n")
+        self.xml_out.write("<classVarDec>\n")
 
         kind_token = self.tokenizer.use_token()
         self._write_tag(kind_token) # static | field
@@ -52,12 +54,12 @@ class CompilationEngine:
             self.tokenizer.buffer_token()
         
         self._write_tag(self.tokenizer.use_token()) # ;
-        self.outfile.write("</classVarDec>\n")
+        self.xml_out.write("</classVarDec>\n")
 
     def compile_subroutine_dec(self):
         self.symbol_table.start_subroutine()
 
-        self.outfile.write("<subroutineDec>\n")
+        self.xml_out.write("<subroutineDec>\n")
 
         function_kind_token = self.tokenizer.use_token()
         if function_kind_token[1] == "method":
@@ -68,21 +70,21 @@ class CompilationEngine:
         self._write_tag(self.tokenizer.use_token()) # subroutine name
         
         self._write_tag(self.tokenizer.use_token()) # (
-        self.outfile.write("<parameterList>\n")
+        self.xml_out.write("<parameterList>\n")
         self.compile_parameter_list()
-        self.outfile.write("</parameterList>\n")
+        self.xml_out.write("</parameterList>\n")
         self._write_tag(self.tokenizer.use_token()) # )
 
         self.compile_subroutine_body()
-        self.outfile.write("</subroutineDec>\n")
+        self.xml_out.write("</subroutineDec>\n")
 
     def compile_subroutine_body(self):
-        self.outfile.write("<subroutineBody>\n")
+        self.xml_out.write("<subroutineBody>\n")
         self._write_tag(self.tokenizer.use_token()) # {
         self.compile_var_dec()
         self.compile_statements()
         self._write_tag(self.tokenizer.use_token()) # }
-        self.outfile.write("</subroutineBody>\n")
+        self.xml_out.write("</subroutineBody>\n")
 
     def compile_parameter_list(self):
         self.tokenizer.buffer_token()
@@ -107,7 +109,7 @@ class CompilationEngine:
     def compile_var_dec(self):
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == "var":
-            self.outfile.write("<varDec>\n")
+            self.xml_out.write("<varDec>\n")
             self._write_tag(self.tokenizer.use_token()) # var
             type_token = self.tokenizer.use_token()
             self._write_tag(type_token) # type
@@ -124,12 +126,12 @@ class CompilationEngine:
                 self.tokenizer.buffer_token()
             
             self._write_tag(self.tokenizer.use_token()) # ;
-            self.outfile.write("</varDec>\n")
+            self.xml_out.write("</varDec>\n")
 
             self.tokenizer.buffer_token()
 
     def compile_statements(self): 
-        self.outfile.write("<statements>\n")
+        self.xml_out.write("<statements>\n")
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("let", "if", "while", "do", "return"):
@@ -148,10 +150,10 @@ class CompilationEngine:
             
             self.tokenizer.buffer_token()
         
-        self.outfile.write("</statements>\n")
+        self.xml_out.write("</statements>\n")
 
     def compile_let(self):
-        self.outfile.write("<letStatement>\n")
+        self.xml_out.write("<letStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # let
         self._write_tag(self.tokenizer.use_token()) # varName
 
@@ -165,10 +167,10 @@ class CompilationEngine:
         self.compile_expression()
 
         self._write_tag(self.tokenizer.use_token()) # ;
-        self.outfile.write("</letStatement>\n")
+        self.xml_out.write("</letStatement>\n")
 
     def compile_if(self):
-        self.outfile.write("<ifStatement>\n")
+        self.xml_out.write("<ifStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # if
         
         self._write_tag(self.tokenizer.use_token()) # (
@@ -186,10 +188,10 @@ class CompilationEngine:
             self.compile_statements()
             self._write_tag(self.tokenizer.use_token()) # }
         
-        self.outfile.write("</ifStatement>\n")
+        self.xml_out.write("</ifStatement>\n")
 
     def compile_while(self):
-        self.outfile.write("<whileStatement>\n")
+        self.xml_out.write("<whileStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # while
 
         self._write_tag(self.tokenizer.use_token()) # (
@@ -200,10 +202,10 @@ class CompilationEngine:
         self.compile_statements()
         self._write_tag(self.tokenizer.use_token()) # }
 
-        self.outfile.write("</whileStatement>\n")
+        self.xml_out.write("</whileStatement>\n")
 
     def compile_do(self):
-        self.outfile.write("<doStatement>\n")
+        self.xml_out.write("<doStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # do
 
         self._write_tag(self.tokenizer.use_token()) # subroutineName | (className | varName)
@@ -217,10 +219,10 @@ class CompilationEngine:
         self._write_tag(self.tokenizer.use_token()) # )
 
         self._write_tag(self.tokenizer.use_token()) # ;
-        self.outfile.write("</doStatement>\n")
+        self.xml_out.write("</doStatement>\n")
 
     def compile_return(self):
-        self.outfile.write("<returnStatement>\n")
+        self.xml_out.write("<returnStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # return
         
         self.tokenizer.buffer_token()
@@ -228,10 +230,10 @@ class CompilationEngine:
             self.compile_expression()
         
         self._write_tag(self.tokenizer.use_token()) # ;
-        self.outfile.write("</returnStatement>\n")
+        self.xml_out.write("</returnStatement>\n")
 
     def compile_expression(self):
-        self.outfile.write("<expression>\n")
+        self.xml_out.write("<expression>\n")
         
         self.compile_term()
 
@@ -241,10 +243,10 @@ class CompilationEngine:
             self.compile_term()
             self.tokenizer.buffer_token()
 
-        self.outfile.write("</expression>\n")
+        self.xml_out.write("</expression>\n")
 
     def compile_term(self):
-        self.outfile.write("<term>\n")
+        self.xml_out.write("<term>\n")
 
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "(": # (expression)
@@ -273,10 +275,10 @@ class CompilationEngine:
                 self.compile_expression_list()
                 self._write_tag(self.tokenizer.use_token()) # )
 
-        self.outfile.write("</term>\n")
+        self.xml_out.write("</term>\n")
 
     def compile_expression_list(self):
-        self.outfile.write("<expressionList>\n")
+        self.xml_out.write("<expressionList>\n")
         
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() != ")":
@@ -288,7 +290,7 @@ class CompilationEngine:
                 self.compile_expression()
                 self.tokenizer.buffer_token()
 
-        self.outfile.write("</expressionList>\n")
+        self.xml_out.write("</expressionList>\n")
 
     def _write_tag(self, token: TokenTuple) -> str:
         token_type, token_value = token
@@ -306,8 +308,8 @@ class CompilationEngine:
         
         if token_tag == "identifier" and self.symbol_table.get_kind_of(token_value):
             attributes = f"kind={self.symbol_table.get_kind_of(token_value)} type={self.symbol_table.get_type_of(token_value)} idx={self.symbol_table.get_index_of(token_value)}"
-            self.outfile.write(f"<{token_tag} {attributes}> ")
+            self.xml_out.write(f"<{token_tag} {attributes}> ")
         else:
-            self.outfile.write(f"<{token_tag}> ")
-        self.outfile.write(f"{token_value}")
-        self.outfile.write(f" </{token_tag}>\n")
+            self.xml_out.write(f"<{token_tag}> ")
+        self.xml_out.write(f"{token_value}")
+        self.xml_out.write(f" </{token_tag}>\n")

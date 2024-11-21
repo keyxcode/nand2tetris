@@ -15,10 +15,17 @@ def main():
     for jack_filename in jack_filenames:
         # add M here to distinguish with the given parsed test file
         # need to remove later
-        out_filename = os.path.splitext(jack_filename)[0] + ".xml"
+        xml_filename = os.path.splitext(jack_filename)[0] + ".xml"
+        vm_filename = os.path.splitext(jack_filename)[0] + ".vm"
         
-        with open(jack_filename, "r") as infile, open(out_filename, "a") as outfile:
-            compilation_engine = CompilationEngine(infile, outfile)
+        with open(jack_filename, "r") as infile, open(xml_filename, "a") as xml_out, open(vm_filename, "a") as vm_out:
+            # clear the output files if already exist
+            xml_out.truncate(0)
+            xml_out.seek(0)
+            vm_out.truncate(0)
+            vm_out.seek(0)
+
+            compilation_engine = CompilationEngine(infile, xml_out, vm_out)
             compilation_engine.compile_class()
 
 
