@@ -39,9 +39,16 @@ class SymbolTable:
         
         return res
 
-    # def var_count(self, kind: SymbolKind) -> int:
-    #     pass
-
+    def var_count(self, kind: _SymbolKind) -> int:
+        if kind == "field":
+            return self.field_idx
+        if kind == "static":
+            return self.static_idx
+        if kind == "arg":
+            return self.arg_idx
+        if kind == "var":
+            return self.var_idx
+        
     def get_type_of(self, name: str) -> str:
         return self.get_symbol_info(name, "type")
 
