@@ -252,8 +252,30 @@ class CompilationEngine:
 
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="):
-            self._write_tag(self.tokenizer.use_token()) # op
+            op_token = self.tokenizer.use_token()
+            self._write_tag(op_token) # op
             self.compile_term()
+
+            op_value = op_token[1]
+            if op_value == "+":
+                self.vm_writer.write_arithmetic("add")
+            elif op_value == "-":
+                self.vm_writer.write_arithmetic("sub")
+            elif op_value == "*":
+                self.vm_writer.write_call("Math.multiply", 2)
+            elif op_value == "/":
+                self.vm_writer.write_call("Math.divide", 2)
+            elif op_value == "&amp":
+                self.vm_writer.write_arithmetic("and")
+            elif op_value == "|":
+                self.vm_writer.write_arithmetic("or")
+            elif op_value == "&lt;":
+                self.vm_writer.write_arithmetic("lt")
+            elif op_value == "&gt;":
+                self.vm_writer.write_arithmetic("gt")
+            elif op_value == "=":
+                self.vm_writer.write_arithmetic("eq")
+            
             self.tokenizer.buffer_token()
 
         self.xml_out.write("</expression>\n")
@@ -267,10 +289,20 @@ class CompilationEngine:
             self.compile_expression()
             self._write_tag(self.tokenizer.use_token()) # )
         elif self.tokenizer.peek_token() in ("-", "~"): # unaryOp term
-            self._write_tag(self.tokenizer.use_token()) # - | ~
+            op_token = self.tokenizer.use_token()
+            self._write_tag(op_token) # - | ~
             self.compile_term()
+
+            op_value = op_token[1]
+            if op_value == "-":
+                self.vm_writer.write_arithmetic("neg")
+            elif op_value == "~":
+                self.vm_writer.write_arithmetic("not")
         else:
-            self._write_tag(self.tokenizer.use_token()) # intConst | strConst | keywordConst | varName
+            term_token = self.tokenizer.use_token()
+            self._write_tag(term_token) # intConst | strConst | keywordConst | varName
+            # TODO: fix this hard-coded intConst
+            self.vm_writer.write_push("constant", term_token[1])
             
             self.tokenizer.buffer_token()
             if self.tokenizer.peek_token() == "[": # varName[expression]

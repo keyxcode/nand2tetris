@@ -14,7 +14,7 @@ class VMWriter:
         self.outfile.write(f"pop {segment} {index}\n")
 
     def write_arithmetic(self, command: _Command) -> None:
-        self.outfile.write(command)
+        self.outfile.write(f"{command}\n")
 
     def write_label(self, label: str) -> None:
         self.outfile.write(f"label {label}\n")
