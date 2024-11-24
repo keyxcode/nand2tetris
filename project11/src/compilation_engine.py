@@ -1,4 +1,4 @@
-from jack_tokenizer import JackTokenizer, TokenTuple
+from jack_tokenizer import JackTokenizer, JackToken
 from typing import TextIO
 from symbol_table import SymbolTable
 from vm_writer import VMWriter
@@ -19,7 +19,7 @@ class CompilationEngine:
 
         self._write_tag(self.tokenizer.use_token()) # class
         class_name_token = self.tokenizer.use_token()
-        self.class_name = class_name_token[1]
+        self.class_name = class_name_token.get_value()
         self._write_tag(class_name_token) # class name
         self._write_tag(self.tokenizer.use_token()) # {
         
@@ -44,14 +44,14 @@ class CompilationEngine:
         type_token = self.tokenizer.use_token()
         self._write_tag(type_token) # type: int | char | boolean | className
         name_token = self.tokenizer.use_token()
-        self.symbol_table.define(name_token[1], type_token[1], kind_token[1])
+        self.symbol_table.define(name_token.get_value(), type_token.get_value(), kind_token.get_value())
         self._write_tag(name_token) # varName
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == ",":
             self._write_tag(self.tokenizer.use_token()) # ,
             name_token = self.tokenizer.use_token()
-            self.symbol_table.define(name_token[1], type_token[1], kind_token[1])
+            self.symbol_table.define(name_token.get_value(), type_token.get_value(), kind_token.get_value())
             self._write_tag(name_token) # varName
             self.tokenizer.buffer_token()
         
@@ -64,13 +64,13 @@ class CompilationEngine:
         self.xml_out.write("<subroutineDec>\n")
 
         function_kind_token = self.tokenizer.use_token()
-        if function_kind_token[1] == "method":
+        if function_kind_token.get_value() == "method":
             self.symbol_table.define("this", self.class_name, "arg")
 
         self._write_tag(function_kind_token) # constructor | function | method
         self._write_tag(self.tokenizer.use_token()) # void | type
         name_token = self.tokenizer.use_token()
-        function_name = f"{self.class_name}.{name_token[1]}"
+        function_name = f"{self.class_name}.{name_token.get_value()}"
         self._write_tag(name_token) # subroutine name
         
         self._write_tag(self.tokenizer.use_token()) # (
@@ -97,7 +97,7 @@ class CompilationEngine:
             type_token = self.tokenizer.use_token()
             self._write_tag(type_token) # type
             name_token = self.tokenizer.use_token()
-            self.symbol_table.define(name_token[1], type_token[1], "arg")
+            self.symbol_table.define(name_token.get_value(), type_token.get_value(), "arg")
             self._write_tag(name_token) # varName
             
             self.tokenizer.buffer_token()
@@ -106,7 +106,7 @@ class CompilationEngine:
                 type_token = self.tokenizer.use_token()
                 self._write_tag(type_token) # type
                 name_token = self.tokenizer.use_token()
-                self.symbol_table.define(name_token[1], type_token[1], "arg")
+                self.symbol_table.define(name_token.get_value(), type_token.get_value(), "arg")
                 self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
 
@@ -118,14 +118,14 @@ class CompilationEngine:
             type_token = self.tokenizer.use_token()
             self._write_tag(type_token) # type
             name_token = self.tokenizer.use_token()
-            self.symbol_table.define(name_token[1], type_token[1], "var")
+            self.symbol_table.define(name_token.get_value(), type_token.get_value(), "var")
             self._write_tag(name_token) # varName
 
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
                 self._write_tag(self.tokenizer.use_token()) # ,
                 name_token = self.tokenizer.use_token()
-                self.symbol_table.define(name_token[1], type_token[1], "var")
+                self.symbol_table.define(name_token.get_value(), type_token.get_value(), "var")
                 self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
             
@@ -213,14 +213,14 @@ class CompilationEngine:
         self._write_tag(self.tokenizer.use_token()) # do
 
         first_name_token = self.tokenizer.use_token()
-        function_name = first_name_token[1]
+        function_name = first_name_token.get_value()
         self._write_tag(first_name_token) # subroutineName | (className | varName)
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == ".":
             self._write_tag(self.tokenizer.use_token()) # .
             second_name_token = self.tokenizer.use_token()
             self._write_tag(second_name_token) # subroutineName
-            function_name += f".{second_name_token[1]}"
+            function_name += f".{second_name_token.get_value()}"
 
         self._write_tag(self.tokenizer.use_token()) # (
         num_args = self.compile_expression_list()
@@ -256,7 +256,7 @@ class CompilationEngine:
             self._write_tag(op_token) # op
             self.compile_term()
 
-            op_value = op_token[1]
+            op_value = op_token.get_value()
             if op_value == "+":
                 self.vm_writer.write_arithmetic("add")
             elif op_value == "-":
@@ -293,7 +293,7 @@ class CompilationEngine:
             self._write_tag(op_token) # - | ~
             self.compile_term()
 
-            op_value = op_token[1]
+            op_value = op_token.get_value()
             if op_value == "-":
                 self.vm_writer.write_arithmetic("neg")
             elif op_value == "~":
@@ -302,7 +302,7 @@ class CompilationEngine:
             term_token = self.tokenizer.use_token()
             self._write_tag(term_token) # intConst | strConst | keywordConst | varName
             # TODO: fix this hard-coded intConst
-            self.vm_writer.write_push("constant", term_token[1])
+            self.vm_writer.write_push("constant", term_token.get_value())
             
             self.tokenizer.buffer_token()
             if self.tokenizer.peek_token() == "[": # varName[expression]
@@ -342,8 +342,9 @@ class CompilationEngine:
         self.xml_out.write("</expressionList>\n")
         return count
 
-    def _write_tag(self, token: TokenTuple) -> str:
-        token_type, token_value = token
+    def _write_tag(self, token: JackToken) -> str:
+        token_type = token.get_type()
+        token_value = token.get_value()
 
         if token_type == "KEYWORD":
             token_tag = "keyword"

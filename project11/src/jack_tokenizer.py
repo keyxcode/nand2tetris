@@ -1,17 +1,27 @@
 import re
 from collections import deque
-from typing import Union, Tuple, Iterator, TextIO, Literal
+from typing import Union, Iterator, TextIO, Literal, Deque
 
 TokenType = Literal["KEYWORD", "SYMBOL", "INT_CONST", "STRING_CONST", "IDENTIFIER"]
-TokenTuple = Tuple[TokenType, str]
+
+class JackToken:
+    def __init__(self, token_type: TokenType, token_value: str):
+        self.token_type = token_type
+        self.token_value = token_value
+
+    def get_type(self) -> TokenType:
+        return self.token_type
+    
+    def get_value(self) -> str:
+        return self.token_value
 
 class JackTokenizer:
     def __init__(self, infile: TextIO):
         self.infile = infile
-        self.buffer = deque()
+        self.buffer: Deque[JackToken] = deque()
         self.token_generator = self.generate_token()
 
-    def use_token(self) -> TokenTuple:
+    def use_token(self) -> JackToken:
         # pop the first token in the buffer if there's any
         # if buffer is empty, use the generator next
         if self.buffer:
@@ -28,9 +38,9 @@ class JackTokenizer:
 
     def peek_token(self, idx: int = 0) -> None:
         # view token value in queue at idx, if there's any
-        return self.buffer[idx][1]
+        return self.buffer[idx].get_value()
 
-    def generate_token(self) -> Iterator[TokenTuple]:
+    def generate_token(self) -> Iterator[JackToken]:
         keyword_pattern = r"\b(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)\b"
         symbol_pattern = r"[{}()\[\].,;+\-*/&|<>=~]"
         integer_constant_pattern = r"\b(0|[1-9]\d{0,4})\b"
@@ -47,7 +57,7 @@ class JackTokenizer:
                 token_str = token.group()
                 token_type = self.get_token_type(token_str)
                 token_value = self.get_token_value(token_str, token_type)
-                yield (token_type, token_value)
+                yield JackToken(token_type, token_value)
 
     def _strip_comments(self, code):
         single_line_pattern = r'//.*?$'
