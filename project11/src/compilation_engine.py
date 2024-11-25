@@ -2,6 +2,7 @@ from jack_tokenizer import JackTokenizer, JackToken
 from typing import TextIO
 from symbol_table import SymbolTable
 from vm_writer import VMWriter
+from itertools import count
 
 class CompilationEngine:
     def __init__(self, infile: TextIO, xml_out: TextIO, vm_out: TextIO):
@@ -13,6 +14,9 @@ class CompilationEngine:
         self.tokenizer = JackTokenizer(infile)
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter(vm_out)
+
+        self.if_count = count()
+        self.while_count = count()
 
     def compile_class(self):
         self.xml_out.write("<class>\n")
@@ -174,25 +178,32 @@ class CompilationEngine:
         self.xml_out.write("</letStatement>\n")
 
     def compile_if(self):
-        self.xml_out.write("<ifStatement>\n")
-        self._write_tag(self.tokenizer.use_token()) # if
+        self.tokenizer.use_token() # if
         
-        self._write_tag(self.tokenizer.use_token()) # (
+        self.tokenizer.use_token() # (
         self.compile_expression()
-        self._write_tag(self.tokenizer.use_token()) # )
+        self.tokenizer.use_token() # )
 
-        self._write_tag(self.tokenizer.use_token()) # {
+        # get the ~ of the eval expression
+        self.vm_writer.write_arithmetic("not")
+        if_count = next(self.if_count)
+        
+        # if the ~expression is true => expression is false => go to the if-false branch (which could be an else, or nothing)
+        self.vm_writer.write_if_goto(f"IF-FALSE{if_count}")
+        self.tokenizer.use_token() # {
         self.compile_statements()
-        self._write_tag(self.tokenizer.use_token()) # }
+        self.tokenizer.use_token() # }
+        self.vm_writer.write_goto(f"END-IF{if_count}")
 
+        self.vm_writer.write_label(f"IF-FALSE{if_count}")
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "else":
-            self._write_tag(self.tokenizer.use_token()) # else
-            self._write_tag(self.tokenizer.use_token()) # {
+            self.tokenizer.use_token() # else
+            self.tokenizer.use_token() # {
             self.compile_statements()
-            self._write_tag(self.tokenizer.use_token()) # }
+            self.tokenizer.use_token() # }
         
-        self.xml_out.write("</ifStatement>\n")
+        self.vm_writer.write_label(f"END-IF{if_count}")
 
     def compile_while(self):
         self.xml_out.write("<whileStatement>\n")
