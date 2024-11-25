@@ -209,6 +209,7 @@ class CompilationEngine:
         self.xml_out.write("</whileStatement>\n")
 
     def compile_do(self):
+        # TODO: do I need to always pop the return value of a do statemnet?
         self.xml_out.write("<doStatement>\n")
         self._write_tag(self.tokenizer.use_token()) # do
 
@@ -252,8 +253,7 @@ class CompilationEngine:
 
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="):
-            op_token = self.tokenizer.use_token()
-            self._write_tag(op_token) # op
+            op_token = self.tokenizer.use_token() # op
             self.compile_term()
 
             op_value = op_token.get_value()
@@ -285,12 +285,11 @@ class CompilationEngine:
 
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "(": # (expression)
-            self._write_tag(self.tokenizer.use_token()) # (
+            self.tokenizer.use_token() # (
             self.compile_expression()
-            self._write_tag(self.tokenizer.use_token()) # )
+            self.tokenizer.use_token() # )
         elif self.tokenizer.peek_token() in ("-", "~"): # unaryOp term
-            op_token = self.tokenizer.use_token()
-            self._write_tag(op_token) # - | ~
+            op_token = self.tokenizer.use_token() # - | ~
             self.compile_term()
 
             op_value = op_token.get_value()
@@ -299,11 +298,40 @@ class CompilationEngine:
             elif op_value == "~":
                 self.vm_writer.write_arithmetic("not")
         else:
-            term_token = self.tokenizer.use_token()
-            self._write_tag(term_token) # intConst | strConst | keywordConst | varName
+            term_token = self.tokenizer.use_token() # intConst | strConst | keywordConst | varName
             # TODO: fix this hard-coded intConst
-            self.vm_writer.write_push("constant", term_token.get_value())
+            term_type =  term_token.get_type()
+            term_value = term_token.get_value()
+            if term_type == "INT_CONST":
+                self.vm_writer.write_push("constant", term_value)
+            elif term_type == "STRING_CONST":
+                # call String.new with 1 arg, the length of the strin
+                self.vm_writer.write_push("constant", len(term_value))
+                self.vm_writer.write_call("String.new", 1)
+                for char in term_value:
+                    self.vm_writer.write_push("constant", term_value)
+                    self.vm_writer.write_call("String.appendChar", ord(char))
+            elif term_type == "KEYWORD":
+                if term_value == "true":
+                    self.vm_writer.write_push("constant", "-1")
+                elif term_value == "false" or term_value == "null":
+                    self.vm_writer.write_push("constant", "0")
+            elif term_type == "IDENTIFIER":
+                kind = self.symbol_table.get_kind_of(term_value)
+                idx = self.symbol_table.get_index_of(term_value)
+                
+                if kind == "field":
+                    segment = "this"
+                elif kind == "static":
+                    segment = "static"
+                elif kind == "arg":
+                    segment = "argument"
+                elif kind == "var":
+                    segment = "local"
+
+                self.vm_writer.write_push(segment, idx)
             
+            # if term is array, object or function call
             self.tokenizer.buffer_token()
             if self.tokenizer.peek_token() == "[": # varName[expression]
                 self._write_tag(self.tokenizer.use_token()) # [
