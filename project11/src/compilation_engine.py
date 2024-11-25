@@ -195,13 +195,13 @@ class CompilationEngine:
         if_count = next(self.if_count)
         
         # if the ~expression is true => expression is false => go to the if-false branch (which could be an else, or nothing)
-        self.vm_writer.write_if_goto(f"IF-FALSE{if_count}")
+        self.vm_writer.write_if_goto(f"IF_FALSE{if_count}")
         self.tokenizer.use_token() # {
         self.compile_statements()
         self.tokenizer.use_token() # }
-        self.vm_writer.write_goto(f"END-IF{if_count}")
+        self.vm_writer.write_goto(f"END_IF{if_count}")
 
-        self.vm_writer.write_label(f"IF-FALSE{if_count}")
+        self.vm_writer.write_label(f"IF_FALSE{if_count}")
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "else":
             self.tokenizer.use_token() # else
@@ -209,13 +209,13 @@ class CompilationEngine:
             self.compile_statements()
             self.tokenizer.use_token() # }
         
-        self.vm_writer.write_label(f"END-IF{if_count}")
+        self.vm_writer.write_label(f"END_IF{if_count}")
 
     def compile_while(self):
         self.tokenizer.use_token() # while
 
         while_count = next(self.while_count)
-        self.vm_writer.write_label(f"WHILE-TRUE{while_count}")
+        self.vm_writer.write_label(f"WHILE_TRUE{while_count}")
 
         self.tokenizer.use_token() # (
         self.compile_expression()
@@ -224,16 +224,16 @@ class CompilationEngine:
         # get the ~ of the eval expression
         self.vm_writer.write_arithmetic("not")
         # if the ~expression is true => expression is false => exit while loop
-        self.vm_writer.write_if_goto(f"END-WHILE{while_count}")
+        self.vm_writer.write_if_goto(f"END_WHILE{while_count}")
 
         self.tokenizer.use_token() # {
         self.compile_statements()
         self.tokenizer.use_token() # }
 
         # go back to the while loop
-        self.vm_writer.write_goto(f"WHILE-TRUE{while_count}")
+        self.vm_writer.write_goto(f"WHILE_TRUE{while_count}")
 
-        self.vm_writer.write_label(f"END-WHILE{while_count}")
+        self.vm_writer.write_label(f"END_WHILE{while_count}")
 
     def compile_do(self):
         self.tokenizer.use_token() # do
