@@ -209,28 +209,24 @@ class CompilationEngine:
         self.xml_out.write("</whileStatement>\n")
 
     def compile_do(self):
-        # TODO: do I need to always pop the return value of a do statemnet?
-        self.xml_out.write("<doStatement>\n")
-        self._write_tag(self.tokenizer.use_token()) # do
+        self.tokenizer.use_token() # do
 
-        first_name_token = self.tokenizer.use_token()
+        first_name_token = self.tokenizer.use_token() # subroutineName | (className | varName)
         function_name = first_name_token.get_value()
-        self._write_tag(first_name_token) # subroutineName | (className | varName)
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == ".":
-            self._write_tag(self.tokenizer.use_token()) # .
-            second_name_token = self.tokenizer.use_token()
-            self._write_tag(second_name_token) # subroutineName
+            self.tokenizer.use_token() # .
+            second_name_token = self.tokenizer.use_token() # subroutineName
             function_name += f".{second_name_token.get_value()}"
 
-        self._write_tag(self.tokenizer.use_token()) # (
+        self.tokenizer.use_token() # (
         num_args = self.compile_expression_list()
-        self._write_tag(self.tokenizer.use_token()) # )
+        self.tokenizer.use_token() # )
 
-        self._write_tag(self.tokenizer.use_token()) # ;
-        self.xml_out.write("</doStatement>\n")
+        self.tokenizer.use_token() # ;
 
         self.vm_writer.write_call(function_name, num_args)
+        self.vm_writer.write_pop("temp", 0) # discard the unused returned value
 
     def compile_return(self):
         self.xml_out.write("<returnStatement>\n")
