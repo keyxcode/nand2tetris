@@ -179,6 +179,7 @@ class CompilationEngine:
         name_token_value = name_token.get_value()
         kind = self.symbol_table.get_kind_of(name_token_value)
         idx = self.symbol_table.get_index_of(name_token_value)
+        self.vm_writer.write_pop(self._kind_to_segment(kind), idx)
 
         self.tokenizer.use_token() # ;
 
