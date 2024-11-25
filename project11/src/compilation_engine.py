@@ -332,7 +332,8 @@ class CompilationEngine:
                     self.vm_writer.write_call("String.appendChar", ord(char))
             elif term_type == "KEYWORD": # true false null
                 if term_value == "true":
-                    self.vm_writer.write_push("constant", "-1")
+                    self.vm_writer.write_push("constant", "1")
+                    self.vm_writer.write_arithmetic("neg")
                 elif term_value == "false" or term_value == "null":
                     self.vm_writer.write_push("constant", "0")
             else: # "IDENTIFIER"
