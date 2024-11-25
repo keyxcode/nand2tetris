@@ -229,8 +229,7 @@ class CompilationEngine:
         self.vm_writer.write_pop("temp", 0) # discard the unused returned value
 
     def compile_return(self):
-        self.xml_out.write("<returnStatement>\n")
-        self._write_tag(self.tokenizer.use_token()) # return
+        self.tokenizer.use_token() # return
         
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() != ";":
@@ -239,12 +238,11 @@ class CompilationEngine:
             self.vm_writer.write_push("constant", 0)
             self.vm_writer.write_return()
         
-        self._write_tag(self.tokenizer.use_token()) # ;
-        self.xml_out.write("</returnStatement>\n")
+        self.tokenizer.use_token() # ;
 
     def compile_expression(self):
         self.xml_out.write("<expression>\n")
-        
+        # an expression always starts with at least 1 term
         self.compile_term()
 
         self.tokenizer.buffer_token()
@@ -327,7 +325,7 @@ class CompilationEngine:
 
                 self.vm_writer.write_push(segment, idx)
             
-            # if term is array, object or function call
+            # TODO: if term is array, object or function call
             self.tokenizer.buffer_token()
             if self.tokenizer.peek_token() == "[": # varName[expression]
                 self._write_tag(self.tokenizer.use_token()) # [
