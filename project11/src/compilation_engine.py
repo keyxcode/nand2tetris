@@ -214,6 +214,7 @@ class CompilationEngine:
     def compile_while(self):
         self.tokenizer.use_token() # while
 
+        while_count = next(self.while_count)
         self.vm_writer.write_label(f"WHILE-TRUE{while_count}")
 
         self.tokenizer.use_token() # (
@@ -222,7 +223,6 @@ class CompilationEngine:
 
         # get the ~ of the eval expression
         self.vm_writer.write_arithmetic("not")
-        while_count = next(self.while_count)
         # if the ~expression is true => expression is false => exit while loop
         self.vm_writer.write_if_goto(f"END-WHILE{while_count}")
 
@@ -302,14 +302,12 @@ class CompilationEngine:
         self.xml_out.write("</expression>\n")
 
     def compile_term(self):
-        self.xml_out.write("<term>\n")
-
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "(": # (expression)
             self.tokenizer.use_token() # (
             self.compile_expression()
             self.tokenizer.use_token() # )
-        elif self.tokenizer.peek_token() in ("-", "~"): # unaryOp term
+        elif self.tokenizer.peek_token() in ("-", "~"): # unaryOp
             op_token = self.tokenizer.use_token() # - | ~
             self.compile_term()
 
@@ -318,11 +316,11 @@ class CompilationEngine:
                 self.vm_writer.write_arithmetic("neg")
             elif op_value == "~":
                 self.vm_writer.write_arithmetic("not")
-        else:
+        else: # intConst | strConst | keywordConst | varName | varName[expression] | subroutineCall
             term_token = self.tokenizer.use_token() # intConst | strConst | keywordConst | varName
-            # TODO: fix this hard-coded intConst
             term_type =  term_token.get_type()
             term_value = term_token.get_value()
+
             if term_type == "INT_CONST":
                 self.vm_writer.write_push("constant", term_value)
             elif term_type == "STRING_CONST":
@@ -332,34 +330,33 @@ class CompilationEngine:
                 for char in term_value:
                     self.vm_writer.write_push("constant", term_value)
                     self.vm_writer.write_call("String.appendChar", ord(char))
-            elif term_type == "KEYWORD":
+            elif term_type == "KEYWORD": # true false null
                 if term_value == "true":
                     self.vm_writer.write_push("constant", "-1")
                 elif term_value == "false" or term_value == "null":
                     self.vm_writer.write_push("constant", "0")
-            elif term_type == "IDENTIFIER":
-                kind = self.symbol_table.get_kind_of(term_value)
-                idx = self.symbol_table.get_index_of(term_value)
-                self.vm_writer.write_push(self._kind_to_segment(kind), idx)
-            
-            # TODO: if term is array, object or function call
-            self.tokenizer.buffer_token()
-            if self.tokenizer.peek_token() == "[": # varName[expression]
-                self._write_tag(self.tokenizer.use_token()) # [
-                self.compile_expression()
-                self._write_tag(self.tokenizer.use_token()) # ]
-            elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
-                self._write_tag(self.tokenizer.use_token()) # (
-                self.compile_expression_list()
-                self._write_tag(self.tokenizer.use_token()) # )
-            elif self.tokenizer.peek_token() == ".": # (className | varName).subroutineName(expressionList)
-                self._write_tag(self.tokenizer.use_token()) # .
-                self._write_tag(self.tokenizer.use_token()) # subroutineName
-                self._write_tag(self.tokenizer.use_token()) # (
-                self.compile_expression_list()
-                self._write_tag(self.tokenizer.use_token()) # )
-
-        self.xml_out.write("</term>\n")
+            else: # "IDENTIFIER"
+                self.tokenizer.buffer_token()
+                if self.tokenizer.peek_token() == "[": # varName[expression]
+                    self.tokenizer.use_token() # [
+                    self.compile_expression()
+                    self.tokenizer.use_token() # ]
+                elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
+                    self.tokenizer.use_token() # (
+                    self.compile_expression_list()
+                    self.tokenizer.use_token() # )
+                elif self.tokenizer.peek_token() == ".": # (className | varName).subroutineName(expressionList)
+                    self.tokenizer.use_token() # .
+                    routine_token = self.tokenizer.use_token() # subroutineName
+                    self.tokenizer.use_token() # (
+                    num_args = self.compile_expression_list()
+                    self.tokenizer.use_token() # )
+                    function_name = f"{term_value}.{routine_token.get_value()}"
+                    self.vm_writer.write_call(function_name, num_args)
+                else: # simple varName
+                    kind = self.symbol_table.get_kind_of(term_value)
+                    idx = self.symbol_table.get_index_of(term_value)
+                    self.vm_writer.write_push(self._kind_to_segment(kind), idx)
 
     def compile_expression_list(self) -> int:
         '''Return number of expressions in the expression list'''
