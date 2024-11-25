@@ -1,8 +1,10 @@
 from jack_tokenizer import JackTokenizer, JackToken
-from typing import TextIO
-from symbol_table import SymbolTable
+from typing import TextIO, Literal
+from symbol_table import SymbolTable, SymbolKind
 from vm_writer import VMWriter
 from itertools import count
+
+Segment = Literal["this", "static", "argument", "local"]
 
 class CompilationEngine:
     def __init__(self, infile: TextIO, xml_out: TextIO, vm_out: TextIO):
@@ -161,21 +163,24 @@ class CompilationEngine:
         self.xml_out.write("</statements>\n")
 
     def compile_let(self):
-        self.xml_out.write("<letStatement>\n")
-        self._write_tag(self.tokenizer.use_token()) # let
-        self._write_tag(self.tokenizer.use_token()) # varName
+        self.tokenizer.use_token() # let
+        name_token = self.tokenizer.use_token() # varName
 
+        # TODO: var is an array
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "[":
-            self._write_tag(self.tokenizer.use_token()) # [
+            self.tokenizer.use_token() # [
             self.compile_expression()
-            self._write_tag(self.tokenizer.use_token()) # ]
+            self.tokenizer.use_token() # ]
 
-        self._write_tag(self.tokenizer.use_token()) # =
+        self.tokenizer.use_token() # =
         self.compile_expression()
 
-        self._write_tag(self.tokenizer.use_token()) # ;
-        self.xml_out.write("</letStatement>\n")
+        name_token_value = name_token.get_value()
+        kind = self.symbol_table.get_kind_of(name_token_value)
+        idx = self.symbol_table.get_index_of(name_token_value)
+
+        self.tokenizer.use_token() # ;
 
     def compile_if(self):
         self.tokenizer.use_token() # if
@@ -334,17 +339,7 @@ class CompilationEngine:
             elif term_type == "IDENTIFIER":
                 kind = self.symbol_table.get_kind_of(term_value)
                 idx = self.symbol_table.get_index_of(term_value)
-                
-                if kind == "field":
-                    segment = "this"
-                elif kind == "static":
-                    segment = "static"
-                elif kind == "arg":
-                    segment = "argument"
-                elif kind == "var":
-                    segment = "local"
-
-                self.vm_writer.write_push(segment, idx)
+                self.vm_writer.write_push(self._kind_to_segment(kind), idx)
             
             # TODO: if term is array, object or function call
             self.tokenizer.buffer_token()
@@ -407,3 +402,14 @@ class CompilationEngine:
             self.xml_out.write(f"<{token_tag}> ")
         self.xml_out.write(f"{token_value}")
         self.xml_out.write(f" </{token_tag}>\n")
+
+    def _kind_to_segment(self, kind: SymbolKind) ->  Segment:
+        if kind == "field":
+            return "this"
+        if kind == "static":
+            return "static"
+        if kind == "arg":
+            return "argument"
+        if kind == "var":
+            return "local"
+        
