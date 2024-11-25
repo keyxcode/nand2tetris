@@ -206,18 +206,28 @@ class CompilationEngine:
         self.vm_writer.write_label(f"END-IF{if_count}")
 
     def compile_while(self):
-        self.xml_out.write("<whileStatement>\n")
-        self._write_tag(self.tokenizer.use_token()) # while
+        self.tokenizer.use_token() # while
 
-        self._write_tag(self.tokenizer.use_token()) # (
+        self.vm_writer.write_label(f"WHILE-TRUE{while_count}")
+
+        self.tokenizer.use_token() # (
         self.compile_expression()
-        self._write_tag(self.tokenizer.use_token()) # )
+        self.tokenizer.use_token() # )
 
-        self._write_tag(self.tokenizer.use_token()) # {
+        # get the ~ of the eval expression
+        self.vm_writer.write_arithmetic("not")
+        while_count = next(self.while_count)
+        # if the ~expression is true => expression is false => exit while loop
+        self.vm_writer.write_if_goto(f"END-WHILE{while_count}")
+
+        self.tokenizer.use_token() # {
         self.compile_statements()
-        self._write_tag(self.tokenizer.use_token()) # }
+        self.tokenizer.use_token() # }
 
-        self.xml_out.write("</whileStatement>\n")
+        # go back to the while loop
+        self.vm_writer.write_goto(f"WHILE-TRUE{while_count}")
+
+        self.vm_writer.write_label(f"END-WHILE{while_count}")
 
     def compile_do(self):
         self.tokenizer.use_token() # do
