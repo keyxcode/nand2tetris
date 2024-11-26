@@ -70,14 +70,14 @@ class CompilationEngine:
         # subroutine dec
         kind_token = self.tokenizer.use_token() # constructor | function | method
         function_kind = kind_token.get_value()
-        if function_kind == "method":
-            self.symbol_table.define("this", self.class_name, "arg")
 
         self.tokenizer.use_token() # void | type
         name_token = self.tokenizer.use_token() # subroutine name
         function_name = f"{self.class_name}.{name_token.get_value()}"
         
         # param list
+        if function_kind == "method":
+            self.symbol_table.define("this", "ClassName", "arg")
         self.tokenizer.use_token() # (
         self.compile_parameter_list()
         self.tokenizer.use_token() # )
@@ -86,10 +86,15 @@ class CompilationEngine:
         self.tokenizer.use_token() # {
         self.compile_var_dec()
         self.vm_writer.write_function(function_name, self.symbol_table.var_count("var"))
+        
         if function_kind == "constructor":
-            self.vm_writer.write_push("constant", self.symbol_table.var_count("var"))
+            self.vm_writer.write_push("constant", self.symbol_table.var_count("field"))
             self.vm_writer.write_call("Memory.alloc", 1)
             self.vm_writer.write_pop("pointer", 0)
+        elif function_name == "method":
+            self.vm_writer.write_push("argument", 0)
+            self.vm_writer.write_pop("pointer", 0)
+        
         self.compile_statements()
         self.tokenizer.use_token() # }
 
@@ -97,20 +102,16 @@ class CompilationEngine:
         self.tokenizer.buffer_token()
 
         while self.tokenizer.peek_token() != ")":
-            type_token = self.tokenizer.use_token()
-            self._write_tag(type_token) # type
-            name_token = self.tokenizer.use_token()
+            type_token = self.tokenizer.use_token() # type
+            name_token = self.tokenizer.use_token() # varName
             self.symbol_table.define(name_token.get_value(), type_token.get_value(), "arg")
-            self._write_tag(name_token) # varName
             
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
-                self._write_tag(self.tokenizer.use_token()) # ,
-                type_token = self.tokenizer.use_token()
-                self._write_tag(type_token) # type
-                name_token = self.tokenizer.use_token()
+                self.tokenizer.use_token() # ,
+                type_token = self.tokenizer.use_token() # type
+                name_token = self.tokenizer.use_token() # varName
                 self.symbol_table.define(name_token.get_value(), type_token.get_value(), "arg")
-                self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
 
     def compile_var_dec(self):
@@ -241,7 +242,12 @@ class CompilationEngine:
         if self.tokenizer.peek_token() == ".":
             self.tokenizer.use_token() # .
             second_name_token = self.tokenizer.use_token() # subroutineName
-            function_name += f".{second_name_token.get_value()}"
+            if self.symbol_table.get_type_of(function_name) != None:
+                function_name = f"{self.symbol_table.get_type_of(function_name)}.{second_name_token.get_value()}"
+            else:
+                function_name += f".{second_name_token.get_value()}"
+        else:
+            function_name = f"{self.class_name}.{function_name}"
 
         self.tokenizer.use_token() # (
         num_args = self.compile_expression_list()
@@ -342,23 +348,34 @@ class CompilationEngine:
                     self.compile_expression_list()
                     self.tokenizer.use_token() # )
                 elif self.tokenizer.peek_token() == ".": # (className | varName).subroutineName(expressionList)
+                    is_method = self.symbol_table.get_type_of(term_value) not in (None, "int", "char", "boolean")
+                    if is_method: # method call
+                        object_kind = self.symbol_table.get_kind_of(term_value)
+                        object_idx = self.symbol_table.get_index_of(term_value)
+                        self.vm_writer.write_push(object_kind, object_idx)
+
                     self.tokenizer.use_token() # .
                     routine_token = self.tokenizer.use_token() # subroutineName
                     self.tokenizer.use_token() # (
                     num_args = self.compile_expression_list()
                     self.tokenizer.use_token() # )
+
                     function_name = f"{term_value}.{routine_token.get_value()}"
-                    self.vm_writer.write_call(function_name, num_args)
+                    if is_method:
+                        self.vm_writer.write_call(function_name, num_args + 1)
+                    else:
+                        self.vm_writer.write_call(function_name, num_args)
                 else: # simple varName
                     kind = self.symbol_table.get_kind_of(term_value)
                     idx = self.symbol_table.get_index_of(term_value)
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
 
     def compile_expression_list(self) -> int:
-        '''Return number of expressions in the expression list'''
-        self.xml_out.write("<expressionList>\n")
-        
-        count = 0
+        '''
+        push the expressions on the stack, and return the total number of expressions in the expression list
+        used exclusively by function calls
+        '''        
+        count = 0 # number of expressions separated by ,
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() != ")":
             self.compile_expression()
@@ -366,12 +383,11 @@ class CompilationEngine:
 
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
-                self._write_tag(self.tokenizer.use_token()) # ,
+                self.tokenizer.use_token() # ,
                 self.compile_expression()
                 count += 1
                 self.tokenizer.buffer_token()
 
-        self.xml_out.write("</expressionList>\n")
         return count
 
     def _write_tag(self, token: JackToken) -> str:
