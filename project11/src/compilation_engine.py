@@ -67,34 +67,26 @@ class CompilationEngine:
     def compile_subroutine_dec(self):
         self.symbol_table.start_subroutine()
 
-        self.xml_out.write("<subroutineDec>\n")
-
-        function_kind_token = self.tokenizer.use_token()
-        if function_kind_token.get_value() == "method":
+        # subroutine dec
+        kind_token = self.tokenizer.use_token() # constructor | function | method
+        if kind_token.get_value() == "method":
             self.symbol_table.define("this", self.class_name, "arg")
 
-        self._write_tag(function_kind_token) # constructor | function | method
-        self._write_tag(self.tokenizer.use_token()) # void | type
-        name_token = self.tokenizer.use_token()
+        self.tokenizer.use_token() # void | type
+        name_token = self.tokenizer.use_token() # subroutine name
         function_name = f"{self.class_name}.{name_token.get_value()}"
-        self._write_tag(name_token) # subroutine name
         
-        self._write_tag(self.tokenizer.use_token()) # (
-        self.xml_out.write("<parameterList>\n")
+        # param list
+        self.tokenizer.use_token() # (
         self.compile_parameter_list()
-        self.xml_out.write("</parameterList>\n")
-        self._write_tag(self.tokenizer.use_token()) # )
+        self.tokenizer.use_token() # )
 
-        self.xml_out.write("<subroutineBody>\n")
-        self._write_tag(self.tokenizer.use_token()) # {
+        # subroutine body
+        self.tokenizer.use_token() # {
         self.compile_var_dec()
         self.vm_writer.write_function(function_name, self.symbol_table.var_count("var"))
-
         self.compile_statements()
-        self._write_tag(self.tokenizer.use_token()) # }
-        self.xml_out.write("</subroutineBody>\n")
-
-        self.xml_out.write("</subroutineDec>\n")
+        self.tokenizer.use_token() # }
 
     def compile_parameter_list(self):
         self.tokenizer.buffer_token()
