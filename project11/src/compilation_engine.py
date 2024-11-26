@@ -86,11 +86,12 @@ class CompilationEngine:
         self.tokenizer.use_token() # {
         self.compile_var_dec()
         self.vm_writer.write_function(function_name, self.symbol_table.var_count("var"))
+        if function_kind == "constructor":
+            self.vm_writer.write_push("constant", self.symbol_table.var_count("var"))
+            self.vm_writer.write_call("Memory.alloc", 1)
+            self.vm_writer.write_pop("pointer", 0)
         self.compile_statements()
         self.tokenizer.use_token() # }
-
-        if function_kind == "constructor":
-            pass # TODO: call alloc here?
 
     def compile_parameter_list(self):
         self.tokenizer.buffer_token()
