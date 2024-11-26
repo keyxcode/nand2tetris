@@ -263,9 +263,9 @@ class CompilationEngine:
             self.compile_expression()
         else: # no return value
             self.vm_writer.write_push("constant", 0)
-            self.vm_writer.write_return()
         
         self.tokenizer.use_token() # ;
+        self.vm_writer.write_return()
 
     def compile_expression(self):
         self.xml_out.write("<expression>\n")
@@ -286,7 +286,7 @@ class CompilationEngine:
                 self.vm_writer.write_call("Math.multiply", 2)
             elif op_value == "/":
                 self.vm_writer.write_call("Math.divide", 2)
-            elif op_value == "&amp":
+            elif op_value == "&amp;":
                 self.vm_writer.write_arithmetic("and")
             elif op_value == "|":
                 self.vm_writer.write_arithmetic("or")
