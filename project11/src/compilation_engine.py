@@ -69,7 +69,8 @@ class CompilationEngine:
 
         # subroutine dec
         kind_token = self.tokenizer.use_token() # constructor | function | method
-        if kind_token.get_value() == "method":
+        function_kind = kind_token.get_value()
+        if function_kind == "method":
             self.symbol_table.define("this", self.class_name, "arg")
 
         self.tokenizer.use_token() # void | type
@@ -87,6 +88,9 @@ class CompilationEngine:
         self.vm_writer.write_function(function_name, self.symbol_table.var_count("var"))
         self.compile_statements()
         self.tokenizer.use_token() # }
+
+        if function_kind == "constructor":
+            pass # TODO: call alloc here?
 
     def compile_parameter_list(self):
         self.tokenizer.buffer_token()
@@ -260,9 +264,7 @@ class CompilationEngine:
         self.vm_writer.write_return()
 
     def compile_expression(self):
-        self.xml_out.write("<expression>\n")
-        # an expression always starts with at least 1 term
-        self.compile_term()
+        self.compile_term() # an expression always starts with at least 1 term
 
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="):
@@ -290,8 +292,6 @@ class CompilationEngine:
                 self.vm_writer.write_arithmetic("eq")
             
             self.tokenizer.buffer_token()
-
-        self.xml_out.write("</expression>\n")
 
     def compile_term(self):
         self.tokenizer.buffer_token()
@@ -322,12 +322,14 @@ class CompilationEngine:
                 for char in term_value:
                     self.vm_writer.write_push("constant", term_value)
                     self.vm_writer.write_call("String.appendChar", ord(char))
-            elif term_type == "KEYWORD": # true false null
+            elif term_type == "KEYWORD": # true false null this
                 if term_value == "true":
                     self.vm_writer.write_push("constant", "1")
                     self.vm_writer.write_arithmetic("neg")
                 elif term_value == "false" or term_value == "null":
                     self.vm_writer.write_push("constant", "0")
+                elif term_value == "this":
+                    self.vm_writer.write_push("pointer", "0")
             else: # "IDENTIFIER"
                 self.tokenizer.buffer_token()
                 if self.tokenizer.peek_token() == "[": # varName[expression]
