@@ -1,19 +1,19 @@
 from typing import TextIO, Literal
 
-_Segment = Literal["constant", "argument", "local", "static", "this", "that", "pointer", "temp"]
-_Command = Literal["add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"]
+# _Segment = Literal["constant", "argument", "local", "static", "this", "that", "pointer", "temp"]
+# _Command = Literal["add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"]
 
 class VMWriter:
     def __init__(self, outfile: TextIO):
         self.outfile = outfile
 
-    def write_push(self, segment: _Segment, index: int) -> None:
+    def write_push(self, segment, index: int) -> None:
         self.outfile.write(f"push {segment} {index}\n")
 
-    def write_pop(self, segment: _Segment, index: int) -> None:
+    def write_pop(self, segment, index: int) -> None:
         self.outfile.write(f"pop {segment} {index}\n")
 
-    def write_arithmetic(self, command: _Command) -> None:
+    def write_arithmetic(self, command) -> None:
         self.outfile.write(f"{command}\n")
 
     def write_label(self, label: str) -> None:

@@ -1,6 +1,6 @@
 from jack_tokenizer import JackTokenizer, JackToken
 from typing import TextIO, Literal
-from symbol_table import SymbolTable, SymbolKind
+from symbol_table import SymbolTable#, SymbolKind
 from vm_writer import VMWriter
 from itertools import count
 
@@ -413,7 +413,7 @@ class CompilationEngine:
         self.xml_out.write(f"{token_value}")
         self.xml_out.write(f" </{token_tag}>\n")
 
-    def _kind_to_segment(self, kind: SymbolKind) ->  Segment:
+    def _kind_to_segment(self, kind) ->  Segment:
         if kind == "field":
             return "this"
         if kind == "static":

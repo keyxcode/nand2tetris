@@ -2,14 +2,14 @@ import re
 from collections import deque
 from typing import Union, Iterator, TextIO, Literal, Deque
 
-TokenType = Literal["KEYWORD", "SYMBOL", "INT_CONST", "STRING_CONST", "IDENTIFIER"]
+# TokenType = Literal["KEYWORD", "SYMBOL", "INT_CONST", "STRING_CONST", "IDENTIFIER"]
 
 class JackToken:
-    def __init__(self, token_type: TokenType, token_value: str):
+    def __init__(self, token_type, token_value: str):
         self.token_type = token_type
         self.token_value = token_value
 
-    def get_type(self) -> TokenType:
+    def get_type(self):
         return self.token_type
     
     def get_value(self) -> str:
@@ -66,7 +66,7 @@ class JackTokenizer:
         
         return re.sub(pattern, '', code, flags=re.DOTALL | re.MULTILINE).strip()
 
-    def get_token_type(self, token: str) -> TokenType:
+    def get_token_type(self, token: str):
         if token in ("class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", 
                                   "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"):
             return "KEYWORD"
@@ -79,7 +79,7 @@ class JackTokenizer:
         else:
             return "IDENTIFIER"
 
-    def get_token_value(self, token: str, token_type: TokenType) -> Union[str, int]:
+    def get_token_value(self, token: str, token_type) -> Union[str, int]:
         if token_type == "KEYWORD":
             return self._keyword_val(token)
         elif token_type == "SYMBOL":
