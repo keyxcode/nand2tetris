@@ -349,8 +349,8 @@ class CompilationEngine:
                 self.vm_writer.write_push("constant", len(term_value))
                 self.vm_writer.write_call("String.new", 1)
                 for char in term_value:
-                    self.vm_writer.write_push("constant", term_value)
-                    self.vm_writer.write_call("String.appendChar", ord(char))
+                    self.vm_writer.write_push("constant", ord(char))
+                    self.vm_writer.write_call("String.appendChar", 2)
             elif term_type == "KEYWORD": # true false null this
                 if term_value == "true":
                     self.vm_writer.write_push("constant", "1")
@@ -369,6 +369,8 @@ class CompilationEngine:
                     self.compile_expression()
                     self.tokenizer.use_token() # ]
                     self.vm_writer.write_arithmetic("add")
+                    self.vm_writer.write_pop("pointer", 1)
+                    self.vm_writer.write_push("that", 0)
                 elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
                     # TODO: handle class method call here?
                     self.tokenizer.use_token() # (
