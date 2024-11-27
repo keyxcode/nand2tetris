@@ -7,9 +7,8 @@ from itertools import count
 Segment = Literal["this", "static", "argument", "local"]
 
 class CompilationEngine:
-    def __init__(self, infile: TextIO, xml_out: TextIO, vm_out: TextIO):
+    def __init__(self, infile: TextIO, vm_out: TextIO):
         self.infile = infile
-        self.xml_out = xml_out
         self.vm_out = vm_out
 
         self.class_name = None
@@ -21,13 +20,10 @@ class CompilationEngine:
         self.while_count = count()
 
     def compile_class(self):
-        self.xml_out.write("<class>\n")
-
-        self._write_tag(self.tokenizer.use_token()) # class
+        self.tokenizer.use_token() # class
         class_name_token = self.tokenizer.use_token()
-        self.class_name = class_name_token.get_value()
-        self._write_tag(class_name_token) # class name
-        self._write_tag(self.tokenizer.use_token()) # {
+        self.class_name = class_name_token.get_value() # class name
+        self.tokenizer.use_token() # {
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("static", "field"):
@@ -38,31 +34,25 @@ class CompilationEngine:
             self.compile_subroutine_dec()
             self.tokenizer.buffer_token()
         
-        self._write_tag(self.tokenizer.use_token()) # }
-
-        self.xml_out.write("</class>\n")
+        self.tokenizer.use_token() # }
 
     def compile_class_var_dec(self):
-        self.xml_out.write("<classVarDec>\n")
-
         kind_token = self.tokenizer.use_token()
-        self._write_tag(kind_token) # static | field
+        kind_token # static | field
         type_token = self.tokenizer.use_token()
-        self._write_tag(type_token) # type: int | char | boolean | className
+        type_token # type: int | char | boolean | className
         name_token = self.tokenizer.use_token()
         self.symbol_table.define(name_token.get_value(), type_token.get_value(), kind_token.get_value())
-        self._write_tag(name_token) # varName
+        name_token # varName
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == ",":
-            self._write_tag(self.tokenizer.use_token()) # ,
-            name_token = self.tokenizer.use_token()
+            self.tokenizer.use_token() # ,
+            name_token = self.tokenizer.use_token() # varName
             self.symbol_table.define(name_token.get_value(), type_token.get_value(), kind_token.get_value())
-            self._write_tag(name_token) # varName
             self.tokenizer.buffer_token()
         
-        self._write_tag(self.tokenizer.use_token()) # ;
-        self.xml_out.write("</classVarDec>\n")
+        self.tokenizer.use_token() # ;
 
     def compile_subroutine_dec(self):
         self.symbol_table.start_subroutine()
@@ -117,30 +107,22 @@ class CompilationEngine:
     def compile_var_dec(self):
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == "var":
-            self.xml_out.write("<varDec>\n")
-            self._write_tag(self.tokenizer.use_token()) # var
-            type_token = self.tokenizer.use_token()
-            self._write_tag(type_token) # type
-            name_token = self.tokenizer.use_token()
+            self.tokenizer.use_token() # var
+            type_token = self.tokenizer.use_token() # type
+            name_token = self.tokenizer.use_token() # varName
             self.symbol_table.define(name_token.get_value(), type_token.get_value(), "var")
-            self._write_tag(name_token) # varName
 
             self.tokenizer.buffer_token()
             while self.tokenizer.peek_token() == ",":
-                self._write_tag(self.tokenizer.use_token()) # ,
-                name_token = self.tokenizer.use_token()
+                self.tokenizer.use_token() # ,
+                name_token = self.tokenizer.use_token() # varName
                 self.symbol_table.define(name_token.get_value(), type_token.get_value(), "var")
-                self._write_tag(name_token) # varName
                 self.tokenizer.buffer_token()
             
-            self._write_tag(self.tokenizer.use_token()) # ;
-            self.xml_out.write("</varDec>\n")
-
+            self.tokenizer.use_token() # ;
             self.tokenizer.buffer_token()
 
-    def compile_statements(self): 
-        self.xml_out.write("<statements>\n")
-        
+    def compile_statements(self):         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("let", "if", "while", "do", "return"):
             peek_token = self.tokenizer.peek_token()
@@ -157,8 +139,6 @@ class CompilationEngine:
                 self.compile_return()
             
             self.tokenizer.buffer_token()
-        
-        self.xml_out.write("</statements>\n")
 
     def compile_let(self):
         self.tokenizer.use_token() # let
@@ -416,29 +396,6 @@ class CompilationEngine:
                 self.tokenizer.buffer_token()
 
         return count
-
-    def _write_tag(self, token: JackToken) -> str:
-        token_type = token.get_type()
-        token_value = token.get_value()
-
-        if token_type == "KEYWORD":
-            token_tag = "keyword"
-        elif token_type == "SYMBOL":
-            token_tag = "symbol"
-        elif token_type == "INT_CONST":
-            token_tag = "integerConstant"
-        elif token_type == "STRING_CONST":
-            token_tag = "stringConstant"
-        else:
-            token_tag = "identifier"
-        
-        if token_tag == "identifier" and self.symbol_table.get_kind_of(token_value):
-            attributes = f"kind={self.symbol_table.get_kind_of(token_value)} type={self.symbol_table.get_type_of(token_value)} idx={self.symbol_table.get_index_of(token_value)}"
-            self.xml_out.write(f"<{token_tag} {attributes}> ")
-        else:
-            self.xml_out.write(f"<{token_tag}> ")
-        self.xml_out.write(f"{token_value}")
-        self.xml_out.write(f" </{token_tag}>\n")
 
     def _kind_to_segment(self, kind) ->  Segment:
         if kind == "field":

@@ -18,14 +18,12 @@ def main():
         xml_filename = os.path.splitext(jack_filename)[0] + ".xml"
         vm_filename = os.path.splitext(jack_filename)[0] + ".vm"
         
-        with open(jack_filename, "r") as infile, open(xml_filename, "a") as xml_out, open(vm_filename, "a") as vm_out:
+        with open(jack_filename, "r") as infile, open(vm_filename, "a") as vm_out:
             # clear the output files if already exist
-            xml_out.truncate(0)
-            xml_out.seek(0)
             vm_out.truncate(0)
             vm_out.seek(0)
 
-            compilation_engine = CompilationEngine(infile, xml_out, vm_out)
+            compilation_engine = CompilationEngine(infile, vm_out)
             compilation_engine.compile_class()
 
 
