@@ -360,11 +360,15 @@ class CompilationEngine:
                 elif term_value == "this":
                     self.vm_writer.write_push("pointer", "0")
             else: # "IDENTIFIER"
+                kind = self.symbol_table.get_kind_of(term_value)
+                idx = self.symbol_table.get_index_of(term_value)
                 self.tokenizer.buffer_token()
                 if self.tokenizer.peek_token() == "[": # varName[expression]
+                    self.vm_writer.write_push(self._kind_to_segment(kind), idx)
                     self.tokenizer.use_token() # [
                     self.compile_expression()
                     self.tokenizer.use_token() # ]
+                    self.vm_writer.write_arithmetic("add")
                 elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
                     # TODO: handle class method call here?
                     self.tokenizer.use_token() # (
@@ -389,8 +393,6 @@ class CompilationEngine:
                     else:
                         self.vm_writer.write_call(function_name, num_args)
                 else: # simple varName
-                    kind = self.symbol_table.get_kind_of(term_value)
-                    idx = self.symbol_table.get_index_of(term_value)
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
 
     def compile_expression_list(self) -> int:
