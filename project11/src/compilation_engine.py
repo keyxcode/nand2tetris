@@ -91,7 +91,7 @@ class CompilationEngine:
             self.vm_writer.write_push("constant", self.symbol_table.var_count("field"))
             self.vm_writer.write_call("Memory.alloc", 1)
             self.vm_writer.write_pop("pointer", 0)
-        elif function_name == "method":
+        elif function_kind == "method":
             self.vm_writer.write_push("argument", 0)
             self.vm_writer.write_pop("pointer", 0)
         
@@ -236,26 +236,39 @@ class CompilationEngine:
     def compile_do(self):
         self.tokenizer.use_token() # do
 
-        first_name_token = self.tokenizer.use_token() # subroutineName | (className | varName)
-        function_name = first_name_token.get_value()
+        first_token = self.tokenizer.use_token() # subroutineName | (className | varName)
+        first_value = first_token.get_value()
+
+        is_method = False
+
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == ".":
             self.tokenizer.use_token() # .
-            second_name_token = self.tokenizer.use_token() # subroutineName
-            if self.symbol_table.get_type_of(function_name) != None:
-                function_name = f"{self.symbol_table.get_type_of(function_name)}.{second_name_token.get_value()}"
-            else:
-                function_name += f".{second_name_token.get_value()}"
-        else:
-            function_name = f"{self.class_name}.{function_name}"
+            second_token = self.tokenizer.use_token() # subroutineName
+            first_value_type = self.symbol_table.get_type_of(first_value)
+            if first_value_type != None: # method call to object of another class
+                is_method = True
+                kind = self.symbol_table.get_kind_of(first_value)
+                idx = self.symbol_table.get_index_of(first_value)
+                self.vm_writer.write_push(self._kind_to_segment(kind), idx)
+                function_name = f"{first_value_type}.{second_token.get_value()}"
+            else: # function call to another class
+                function_name = f"{first_value}.{second_token.get_value()}"
+        else: # method call to object of this very class
+            is_method = True
+            self.vm_writer.write_push("pointer", 0)
+            function_name = f"{self.class_name}.{first_value}"
 
         self.tokenizer.use_token() # (
         num_args = self.compile_expression_list()
         self.tokenizer.use_token() # )
-
         self.tokenizer.use_token() # ;
 
-        self.vm_writer.write_call(function_name, num_args)
+        if is_method:
+            self.vm_writer.write_call(function_name, num_args + 1)
+        else:
+            self.vm_writer.write_call(function_name, num_args)
+            
         self.vm_writer.write_pop("temp", 0) # discard the unused returned value
 
     def compile_return(self):

@@ -26,7 +26,7 @@ class VMWriter:
         self.outfile.write(f"if-goto {label}\n")
 
     def write_function(self, name: str, num_locals: int) -> None:
-        self.outfile.write(f"function {name} {num_locals}\n")
+        self.outfile.write(f"\nfunction {name} {num_locals}\n")
 
     def write_call(self, name: str, num_args: int) -> None:
         self.outfile.write(f"call {name} {num_args}\n")
