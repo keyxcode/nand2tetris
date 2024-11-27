@@ -163,21 +163,30 @@ class CompilationEngine:
     def compile_let(self):
         self.tokenizer.use_token() # let
         name_token = self.tokenizer.use_token() # varName
-
-        # TODO: var is an array
-        self.tokenizer.buffer_token()
-        if self.tokenizer.peek_token() == "[":
-            self.tokenizer.use_token() # [
-            self.compile_expression()
-            self.tokenizer.use_token() # ]
-
-        self.tokenizer.use_token() # =
-        self.compile_expression()
-
         name_token_value = name_token.get_value()
         kind = self.symbol_table.get_kind_of(name_token_value)
         idx = self.symbol_table.get_index_of(name_token_value)
-        self.vm_writer.write_pop(self._kind_to_segment(kind), idx)
+
+        is_array = False
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == "[": # evaluate the memory address of this array offset
+            is_array = True
+            self.vm_writer.write_push(self._kind_to_segment(kind), idx)
+            self.tokenizer.use_token() # [
+            self.compile_expression()
+            self.tokenizer.use_token() # ]
+            self.vm_writer.write_arithmetic("add")
+
+        self.tokenizer.use_token() # =
+        self.compile_expression()
+        
+        if is_array:
+            self.vm_writer.write_pop("temp", 0)
+            self.vm_writer.write_pop("pointer", 1)
+            self.vm_writer.write_push("temp", 0)
+            self.vm_writer.write_pop("that", 0)
+        else:
+            self.vm_writer.write_pop(self._kind_to_segment(kind), idx)
 
         self.tokenizer.use_token() # ;
 
@@ -357,6 +366,7 @@ class CompilationEngine:
                     self.compile_expression()
                     self.tokenizer.use_token() # ]
                 elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
+                    # TODO: handle class method call here?
                     self.tokenizer.use_token() # (
                     self.compile_expression_list()
                     self.tokenizer.use_token() # )
