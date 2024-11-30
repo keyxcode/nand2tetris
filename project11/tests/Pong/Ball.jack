@@ -22,8 +22,8 @@ class Ball {
 
     /** Constructs a new ball with the given initial location and wall locations. */
     constructor Ball new(int Ax, int Ay,
-                         int AleftWall, int ArightWall, int AtopWall, int AbottomWall) {    	
-	    let x = Ax;		
+                         int AleftWall, int ArightWall, int AtopWall, int AbottomWall) {
+	    let x = Ax;
 	    let y = Ay;
 	    let leftWall = AleftWall;
 	    let rightWall = ArightWall - 6;    // -6 for ball size

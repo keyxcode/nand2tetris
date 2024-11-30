@@ -361,7 +361,7 @@ class CompilationEngine:
                     if is_method: # method call
                         object_kind = self.symbol_table.get_kind_of(term_value)
                         object_idx = self.symbol_table.get_index_of(term_value)
-                        self.vm_writer.write_push(object_kind, object_idx)
+                        self.vm_writer.write_push(self._kind_to_segment(object_kind), object_idx)
 
                     self.tokenizer.use_token() # .
                     routine_token = self.tokenizer.use_token() # subroutineName
@@ -369,10 +369,11 @@ class CompilationEngine:
                     num_args = self.compile_expression_list()
                     self.tokenizer.use_token() # )
 
-                    function_name = f"{term_value}.{routine_token.get_value()}"
                     if is_method:
+                        function_name = f"{self.symbol_table.get_type_of(term_value)}.{routine_token.get_value()}"
                         self.vm_writer.write_call(function_name, num_args + 1)
                     else:
+                        function_name = f"{term_value}.{routine_token.get_value()}"
                         self.vm_writer.write_call(function_name, num_args)
                 else: # simple varName
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
