@@ -15,14 +15,15 @@ class CompilationEngine:
         self.tokenizer = JackTokenizer(infile)
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter(vm_out)
-
+        
+        # these are used to differentiate between different jack if and while statements when translated to vm commands
         self.if_count = count()
         self.while_count = count()
 
     def compile_class(self):
         self.tokenizer.use_token() # class
-        class_name_token = self.tokenizer.use_token()
-        self.class_name = class_name_token.get_value() # class name
+        class_name_token = self.tokenizer.use_token() # class name
+        self.class_name = class_name_token.get_value()
         self.tokenizer.use_token() # {
         
         self.tokenizer.buffer_token()
@@ -37,13 +38,10 @@ class CompilationEngine:
         self.tokenizer.use_token() # }
 
     def compile_class_var_dec(self):
-        kind_token = self.tokenizer.use_token()
-        kind_token # static | field
-        type_token = self.tokenizer.use_token()
-        type_token # type: int | char | boolean | className
-        name_token = self.tokenizer.use_token()
+        kind_token = self.tokenizer.use_token() # static | field
+        type_token = self.tokenizer.use_token() # int | char | boolean | className
+        name_token = self.tokenizer.use_token() # varName
         self.symbol_table.define(name_token.get_value(), type_token.get_value(), kind_token.get_value())
-        name_token # varName
         
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == ",":
@@ -55,7 +53,7 @@ class CompilationEngine:
         self.tokenizer.use_token() # ;
 
     def compile_subroutine_dec(self):
-        self.symbol_table.start_subroutine()
+        self.symbol_table.start_subroutine() # clear subroutine symbol table
 
         # subroutine dec
         kind_token = self.tokenizer.use_token() # constructor | function | method
@@ -67,7 +65,9 @@ class CompilationEngine:
         
         # param list
         if function_kind == "method":
-            self.symbol_table.define("this", "ClassName", "arg")
+            # this is only to account for the one extra argument that the caller passes in ("this" object address)
+            # since we'll never actually look up the info of this symbol based on its name, it's not important to push its name and type
+            self.symbol_table.define("_", "_", "arg")
         self.tokenizer.use_token() # (
         self.compile_parameter_list()
         self.tokenizer.use_token() # )
@@ -86,11 +86,11 @@ class CompilationEngine:
             self.vm_writer.write_pop("pointer", 0)
         
         self.compile_statements()
+        
         self.tokenizer.use_token() # }
 
     def compile_parameter_list(self):
         self.tokenizer.buffer_token()
-
         while self.tokenizer.peek_token() != ")":
             type_token = self.tokenizer.use_token() # type
             name_token = self.tokenizer.use_token() # varName
