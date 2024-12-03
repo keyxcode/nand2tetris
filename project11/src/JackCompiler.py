@@ -13,9 +13,6 @@ def main():
         jack_filenames = [os.path.join(jack_input, f) for f in os.listdir(jack_input) if f.endswith(".jack")]
 
     for jack_filename in jack_filenames:
-        # add M here to distinguish with the given parsed test file
-        # need to remove later
-        xml_filename = os.path.splitext(jack_filename)[0] + ".xml"
         vm_filename = os.path.splitext(jack_filename)[0] + ".vm"
         
         with open(jack_filename, "r") as infile, open(vm_filename, "a") as vm_out:

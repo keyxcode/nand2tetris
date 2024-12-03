@@ -69,7 +69,7 @@ class CompilationEngine:
             # since we'll never actually look up the info of this symbol based on its name, it's not important to push its name and type
             self.symbol_table.define("_", "_", "arg")
         self.tokenizer.use_token() # (
-        self.compile_parameter_list()
+        self.compile_parameter_list() # "real" arguments
         self.tokenizer.use_token() # )
 
         # subroutine body
@@ -102,6 +102,7 @@ class CompilationEngine:
                 type_token = self.tokenizer.use_token() # type
                 name_token = self.tokenizer.use_token() # varName
                 self.symbol_table.define(name_token.get_value(), type_token.get_value(), "arg")
+                
                 self.tokenizer.buffer_token()
 
     def compile_var_dec(self):
@@ -142,16 +143,17 @@ class CompilationEngine:
 
     def compile_let(self):
         self.tokenizer.use_token() # let
+        
         name_token = self.tokenizer.use_token() # varName
-        name_token_value = name_token.get_value()
-        kind = self.symbol_table.get_kind_of(name_token_value)
-        idx = self.symbol_table.get_index_of(name_token_value)
+        symbol_name = name_token.get_value()
+        symbol_kind = self.symbol_table.get_kind_of(symbol_name)
+        symbol_idx = self.symbol_table.get_index_of(symbol_name)
 
         is_array = False
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "[": # evaluate the memory address of this array offset
             is_array = True
-            self.vm_writer.write_push(self._kind_to_segment(kind), idx)
+            self.vm_writer.write_push(self._kind_to_segment(symbol_kind), symbol_idx)
             self.tokenizer.use_token() # [
             self.compile_expression()
             self.tokenizer.use_token() # ]
@@ -166,7 +168,7 @@ class CompilationEngine:
             self.vm_writer.write_push("temp", 0)
             self.vm_writer.write_pop("that", 0)
         else:
-            self.vm_writer.write_pop(self._kind_to_segment(kind), idx)
+            self.vm_writer.write_pop(self._kind_to_segment(symbol_kind), symbol_idx)
 
         self.tokenizer.use_token() # ;
 
@@ -226,7 +228,7 @@ class CompilationEngine:
         self.tokenizer.use_token() # do
 
         first_token = self.tokenizer.use_token() # subroutineName | (className | varName)
-        first_value = first_token.get_value()
+        first_symbol_name = first_token.get_value()
 
         is_method = False
 
@@ -234,19 +236,23 @@ class CompilationEngine:
         if self.tokenizer.peek_token() == ".":
             self.tokenizer.use_token() # .
             second_token = self.tokenizer.use_token() # subroutineName
-            first_value_type = self.symbol_table.get_type_of(first_value)
-            if first_value_type != None: # method call to object of another class
+            
+            # this can potentially be the class name of an object
+            # or just None if the symbol name itself is a class name
+            first_symbol_type = self.symbol_table.get_type_of(first_symbol_name)
+
+            if first_symbol_type != None: # method call to object of another class
                 is_method = True
-                kind = self.symbol_table.get_kind_of(first_value)
-                idx = self.symbol_table.get_index_of(first_value)
-                self.vm_writer.write_push(self._kind_to_segment(kind), idx)
-                function_name = f"{first_value_type}.{second_token.get_value()}"
+                first_symbol_kind = self.symbol_table.get_kind_of(first_symbol_name)
+                first_symbol_idx = self.symbol_table.get_index_of(first_symbol_name)
+                self.vm_writer.write_push(self._kind_to_segment(first_symbol_kind), first_symbol_idx)
+                function_name = f"{first_symbol_type}.{second_token.get_value()}"
             else: # function call to another class
-                function_name = f"{first_value}.{second_token.get_value()}"
+                function_name = f"{first_symbol_name}.{second_token.get_value()}"
         else: # method call to object of this very class
             is_method = True
             self.vm_writer.write_push("pointer", 0)
-            function_name = f"{self.class_name}.{first_value}"
+            function_name = f"{self.class_name}.{first_symbol_name}"
 
         self.tokenizer.use_token() # (
         num_args = self.compile_expression_list()
