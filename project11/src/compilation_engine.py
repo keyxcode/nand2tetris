@@ -228,42 +228,8 @@ class CompilationEngine:
         self.tokenizer.use_token() # do
 
         first_token = self.tokenizer.use_token() # subroutineName | (className | varName)
-        first_symbol_name = first_token.get_value()
-
-        is_method = False
-
-        self.tokenizer.buffer_token()
-        if self.tokenizer.peek_token() == ".":
-            self.tokenizer.use_token() # .
-            second_token = self.tokenizer.use_token() # subroutineName
-            
-            # this can potentially be the class name of an object
-            # or just None if the symbol name itself is a class name
-            first_symbol_type = self.symbol_table.get_type_of(first_symbol_name)
-
-            if first_symbol_type != None: # method call to object of another class
-                is_method = True
-                first_symbol_kind = self.symbol_table.get_kind_of(first_symbol_name)
-                first_symbol_idx = self.symbol_table.get_index_of(first_symbol_name)
-                self.vm_writer.write_push(self._kind_to_segment(first_symbol_kind), first_symbol_idx)
-                function_name = f"{first_symbol_type}.{second_token.get_value()}"
-            else: # function call to another class
-                function_name = f"{first_symbol_name}.{second_token.get_value()}"
-        else: # method call to object of this very class
-            is_method = True
-            self.vm_writer.write_push("pointer", 0)
-            function_name = f"{self.class_name}.{first_symbol_name}"
-
-        self.tokenizer.use_token() # (
-        num_args = self.compile_expression_list()
-        self.tokenizer.use_token() # )
+        self.compile_subroutine_call(first_token)
         self.tokenizer.use_token() # ;
-
-        if is_method:
-            self.vm_writer.write_call(function_name, num_args + 1)
-        else:
-            self.vm_writer.write_call(function_name, num_args)
-            
         self.vm_writer.write_pop("temp", 0) # discard the unused returned value
 
     def compile_return(self):
@@ -348,6 +314,7 @@ class CompilationEngine:
             else: # "IDENTIFIER"
                 kind = self.symbol_table.get_kind_of(term_value)
                 idx = self.symbol_table.get_index_of(term_value)
+                
                 self.tokenizer.buffer_token()
                 if self.tokenizer.peek_token() == "[": # varName[expression]
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
@@ -357,38 +324,58 @@ class CompilationEngine:
                     self.vm_writer.write_arithmetic("add")
                     self.vm_writer.write_pop("pointer", 1)
                     self.vm_writer.write_push("that", 0)
-                elif self.tokenizer.peek_token() == "(": # subroutineName(expressionList)
-                    # TODO: handle class method call here?
-                    self.tokenizer.use_token() # (
-                    self.compile_expression_list()
-                    self.tokenizer.use_token() # )
-                elif self.tokenizer.peek_token() == ".": # (className | varName).subroutineName(expressionList)
-                    is_method = self.symbol_table.get_type_of(term_value) not in (None, "int", "char", "boolean")
-                    if is_method: # method call
-                        object_kind = self.symbol_table.get_kind_of(term_value)
-                        object_idx = self.symbol_table.get_index_of(term_value)
-                        self.vm_writer.write_push(self._kind_to_segment(object_kind), object_idx)
-
-                    self.tokenizer.use_token() # .
-                    routine_token = self.tokenizer.use_token() # subroutineName
-                    self.tokenizer.use_token() # (
-                    num_args = self.compile_expression_list()
-                    self.tokenizer.use_token() # )
-
-                    if is_method:
-                        function_name = f"{self.symbol_table.get_type_of(term_value)}.{routine_token.get_value()}"
-                        self.vm_writer.write_call(function_name, num_args + 1)
-                    else:
-                        function_name = f"{term_value}.{routine_token.get_value()}"
-                        self.vm_writer.write_call(function_name, num_args)
+                elif self.tokenizer.peek_token() in ("(", "."): # function call
+                    self.compile_subroutine_call(term_token)
                 else: # simple varName
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
+
+    def compile_subroutine_call(self, first_token: JackToken) -> None:
+        '''compile
+        subroutineName(expressionList)
+        className.subroutineName(exprsesionList)
+        objectName.subroutineName(expressionList)
+        given the first token of the term: subroutineName | (className | varName)
+        '''
+
+        first_symbol_name = first_token.get_value()
+        is_method = False
+
+        self.tokenizer.buffer_token()
+        if self.tokenizer.peek_token() == ".":
+            self.tokenizer.use_token() # .
+            second_token = self.tokenizer.use_token() # subroutineName
+            
+            # this can potentially be the class name of an object
+            # or just None if the symbol name itself is a class name
+            first_symbol_type = self.symbol_table.get_type_of(first_symbol_name)
+
+            if first_symbol_type not in (None, "int", "char", "boolean"): # method call to object of another class
+                is_method = True
+                first_symbol_kind = self.symbol_table.get_kind_of(first_symbol_name)
+                first_symbol_idx = self.symbol_table.get_index_of(first_symbol_name)
+                self.vm_writer.write_push(self._kind_to_segment(first_symbol_kind), first_symbol_idx)
+                function_name = f"{first_symbol_type}.{second_token.get_value()}"
+            else: # function call to another class
+                function_name = f"{first_symbol_name}.{second_token.get_value()}"
+        else: # method call to object of this very class
+            is_method = True
+            self.vm_writer.write_push("pointer", 0)
+            function_name = f"{self.class_name}.{first_symbol_name}"
+
+        self.tokenizer.use_token() # (
+        num_args = self.compile_expression_list()
+        self.tokenizer.use_token() # )
+
+        if is_method:
+            self.vm_writer.write_call(function_name, num_args + 1)
+        else:
+            self.vm_writer.write_call(function_name, num_args)
 
     def compile_expression_list(self) -> int:
         '''
         push the expressions on the stack, and return the total number of expressions in the expression list
         used exclusively by function calls
-        '''        
+        '''
         count = 0 # number of expressions separated by ,
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() != ")":
