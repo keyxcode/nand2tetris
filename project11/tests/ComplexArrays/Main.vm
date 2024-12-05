@@ -1,4 +1,3 @@
-
 function Main.main 3
 push constant 10
 call Array.new 1
@@ -673,13 +672,11 @@ call Output.println 0
 pop temp 0
 push constant 0
 return
-
 function Main.double 0
 push argument 0
 push constant 2
 call Math.multiply 2
 return
-
 function Main.fill 0
 label WHILE_TRUE0
 push argument 1
