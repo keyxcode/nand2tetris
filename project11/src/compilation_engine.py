@@ -1,13 +1,19 @@
 from jack_tokenizer import JackTokenizer, JackToken
 from typing import TextIO, Literal
-from symbol_table import SymbolTable#, SymbolKind
+from symbol_table import SymbolTable, SymbolKind
 from vm_writer import VMWriter
 from itertools import count
 
 Segment = Literal["this", "static", "argument", "local"]
 
 class CompilationEngine:
+    """
+    Translates Jack source code into VM code.
+    """
     def __init__(self, infile: TextIO, vm_out: TextIO):
+        """
+        Initializes the CompilationEngine with input file and VM output file.
+        """
         self.infile = infile
         self.vm_out = vm_out
 
@@ -21,6 +27,9 @@ class CompilationEngine:
         self.while_count = count()
 
     def compile_class(self):
+        """
+        Compiles a class declaration, including class variables and subroutines.
+        """
         self.tokenizer.use_token() # class
         class_name_token = self.tokenizer.use_token() # class name
         self.class_name = class_name_token.get_value()
@@ -38,6 +47,9 @@ class CompilationEngine:
         self.tokenizer.use_token() # }
 
     def compile_class_var_dec(self):
+        """
+        Compiles a class variable declaration (static or field).
+        """
         kind_token = self.tokenizer.use_token() # static | field
         type_token = self.tokenizer.use_token() # int | char | boolean | className
         name_token = self.tokenizer.use_token() # varName
@@ -53,6 +65,9 @@ class CompilationEngine:
         self.tokenizer.use_token() # ;
 
     def compile_subroutine_dec(self):
+        """
+        Compiles a subroutine declaration (constructor, function, method).
+        """
         self.symbol_table.start_subroutine() # clear subroutine symbol table
 
         # subroutine dec
@@ -90,6 +105,9 @@ class CompilationEngine:
         self.tokenizer.use_token() # }
 
     def compile_parameter_list(self):
+        """
+        Compiles a list of parameters for a subroutine.
+        """
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() != ")":
             type_token = self.tokenizer.use_token() # type
@@ -106,6 +124,9 @@ class CompilationEngine:
                 self.tokenizer.buffer_token()
 
     def compile_var_dec(self):
+        """
+        Compiles a local variable declaration within a subroutine.
+        """
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() == "var":
             self.tokenizer.use_token() # var
@@ -123,7 +144,10 @@ class CompilationEngine:
             self.tokenizer.use_token() # ;
             self.tokenizer.buffer_token()
 
-    def compile_statements(self):         
+    def compile_statements(self):
+        """
+        Compiles statements within a subroutine.
+        """
         self.tokenizer.buffer_token()
         while self.tokenizer.peek_token() in ("let", "if", "while", "do", "return"):
             peek_token = self.tokenizer.peek_token()
@@ -142,6 +166,9 @@ class CompilationEngine:
             self.tokenizer.buffer_token()
 
     def compile_let(self):
+        """
+        Compiles a 'let' statement (variable assignment).
+        """
         self.tokenizer.use_token() # let
         
         name_token = self.tokenizer.use_token() # varName
@@ -173,6 +200,9 @@ class CompilationEngine:
         self.tokenizer.use_token() # ;
 
     def compile_if(self):
+        """
+        Compiles an 'if' statement with optional 'else' block.
+        """
         self.tokenizer.use_token() # if
         
         self.tokenizer.use_token() # (
@@ -201,6 +231,9 @@ class CompilationEngine:
         self.vm_writer.write_label(f"END_IF{if_count}")
 
     def compile_while(self):
+        """
+        Compiles a 'while' statement.
+        """
         self.tokenizer.use_token() # while
 
         while_count = next(self.while_count)
@@ -225,6 +258,9 @@ class CompilationEngine:
         self.vm_writer.write_label(f"END_WHILE{while_count}")
 
     def compile_do(self):
+        """
+        Compiles a 'do' statement (subroutine call).
+        """
         self.tokenizer.use_token() # do
 
         first_token = self.tokenizer.use_token() # subroutineName | (className | varName)
@@ -233,6 +269,9 @@ class CompilationEngine:
         self.vm_writer.write_pop("temp", 0) # discard the unused returned value
 
     def compile_return(self):
+        """
+        Compiles a 'return' statement.
+        """
         self.tokenizer.use_token() # return
         
         self.tokenizer.buffer_token()
@@ -245,6 +284,9 @@ class CompilationEngine:
         self.vm_writer.write_return()
 
     def compile_expression(self):
+        """
+        Compiles an expression.
+        """
         self.compile_term() # an expression always starts with at least 1 term
 
         self.tokenizer.buffer_token()
@@ -275,6 +317,9 @@ class CompilationEngine:
             self.tokenizer.buffer_token()
 
     def compile_term(self):
+        """
+        Compiles a term (a part of an expression).
+        """
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() == "(": # (expression)
             self.tokenizer.use_token() # (
@@ -329,14 +374,16 @@ class CompilationEngine:
                 else: # simple varName
                     self.vm_writer.write_push(self._kind_to_segment(kind), idx)
 
-    def compile_subroutine_call(self, first_token: JackToken) -> None:
-        '''compile
+    def compile_subroutine_call(self, first_token: JackToken):
+        """
+        Compiles a subroutine call, including method or function calls.
         subroutineName(expressionList)
+        varName.subroutineName(expressionList)
         className.subroutineName(exprsesionList)
-        objectName.subroutineName(expressionList)
-        given the first token of the term: subroutineName | (className | varName)
-        '''
-
+        
+        Args:
+            first_token (JackToken): the first token of this call: subroutineName | className | varName
+        """
         first_symbol_name = first_token.get_value()
         is_method = False
 
@@ -372,10 +419,10 @@ class CompilationEngine:
             self.vm_writer.write_call(function_name, num_args)
 
     def compile_expression_list(self) -> int:
-        '''
-        push the expressions on the stack, and return the total number of expressions in the expression list
-        used exclusively by function calls
-        '''
+        """
+        Compiles an expression list (used in function calls).
+        Returns the number of expressions in the list.
+        """
         count = 0 # number of expressions separated by ,
         self.tokenizer.buffer_token()
         if self.tokenizer.peek_token() != ")":
@@ -391,7 +438,10 @@ class CompilationEngine:
 
         return count
 
-    def _kind_to_segment(self, kind) ->  Segment:
+    def _kind_to_segment(self, kind: SymbolKind) ->  Segment:
+        """
+        Converts a variable kind to the corresponding VM segment.
+        """
         if kind == "field":
             return "this"
         if kind == "static":
@@ -400,4 +450,3 @@ class CompilationEngine:
             return "argument"
         if kind == "var":
             return "local"
-        
