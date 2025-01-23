@@ -44,8 +44,6 @@ class Math {
         while (i < n) {
             if (~((y & powersOfTwo[i]) = 0)) {
                 let sum = sum + shiftedX;
-                do Output.printInt(sum);
-                do Output.println();
             }
 
             let shiftedX = shiftedX + shiftedX;
@@ -60,7 +58,37 @@ class Math {
      *  an an expression, it handles it by invoking this method.
      *  Thus, x/y and Math.divide(x,y) return the same value. */
     function int divide(int x, int y) {
-        return 1;
+        var int q, res;
+        var boolean isNeg;
+
+        // handle negative numbers
+        let isNeg = false;
+        if (x < 0) {
+            let x = -x;
+            let isNeg = ~isNeg;
+        }
+        if (y < 0) {
+            let y = -y;
+            let isNeg = ~isNeg;
+        }
+
+        // base case
+        if (y > x) {
+            return 0;
+        }
+
+        // recursion
+        let q = Math.divide(x, 2 * y);
+        if ((x - (2 * q * y)) < y) { // remainder of rec div < y
+            let res = 2 * q;
+        } else { // remainder >= y
+            let res = 2 * q + 1;
+        }
+
+        if (isNeg = true) {
+            return -res;
+        }
+        return res;
     }
 
     /** Returns the integer part of the square root of x. */
@@ -70,16 +98,28 @@ class Math {
 
     /** Returns the greater value. */
     function int max(int a, int b) {
-        return 1;
+        if (a > b) {
+            return a;
+        }
+
+        return b;
     }
 
     /** Returns the smaller value. */
     function int min(int a, int b) {
-        return 1;
+        if (a < b) {
+            return a;
+        }
+
+        return b;
     }
 
     /** Returns the absolute value of x. */
     function int abs(int x) {
-        return 1;
+        if (x < 0) {
+            return -x;
+        }
+
+        return x;
     }
 }
