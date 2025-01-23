@@ -73,7 +73,7 @@ class Math {
         }
 
         // base case
-        if (y > x) {
+        if ((y > x) | (y < 0)) {
             return 0;
         }
 
@@ -93,7 +93,22 @@ class Math {
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-        return 1;
+    	var int y, i, res;
+    	
+        let i = (n / 2) - 1;
+    	
+        // build the result bit by bit, starting from the biggest power of 2 possible
+        while (~(i < 0)) {
+    		let res = ((y + powersOfTwo[i]) * (y + powersOfTwo[i]));
+    		
+            if ((~(res > x)) & (res > 0)) {
+    			let y = y + powersOfTwo[i];
+    		}
+    		
+            let i = i - 1;
+    	}
+
+    	return y;
     }
 
     /** Returns the greater value. */
