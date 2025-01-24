@@ -9,6 +9,7 @@ class Keyboard {
 
     /** Initializes the keyboard. */
     function void init() {
+        return;
     }
 
     /**
@@ -32,13 +33,7 @@ class Keyboard {
      * F1 - F12 = 141 - 152
      */
     function char keyPressed() {
-        var char key;
-
-        if (valid key) {
-            return key;
-        }
-
-        return 0;
+        return Memory.peek(24576);
     }
 
     /**	Waits until a key is pressed on the keyboard and released,
@@ -47,21 +42,19 @@ class Keyboard {
     function char readChar() {
         var char key;
 
-        do display cursor
-
         // wait for key press
         while (Keyboard.keyPressed() = 0) {
             // do nothing
         }
-        let key = Keyboard.keyPressed()
+        let key = Keyboard.keyPressed();
 
         // wait for key release
         while (~(Keyboard.keyPressed() = 0)) {
             // do nothing
         }
 
-        do display key at cursor
-        do advance cursor
+        // display key after key release
+        do Output.printChar(key);
 
         return key;
     }
@@ -71,25 +64,31 @@ class Keyboard {
      *  and returns its value. Also handles user backspaces. */
     function String readLine(String message) {
         var char key;
-        var String text;
+        var String line;
 
-        do display cursor
+        let line = String.new(100);
+        
+        do Output.printString(message);
 
         while (true) {
             let key = Keyboard.readChar();
             
-            if (key = newline) {
-                do display newLine;
-                return text;
+            if (key = String.newLine()) {
+                do Output.println();
+                return line;
             }
 
-            if (key = backspace) {
-                remove last char from text;
-                do Output.backspace();
+            if (key = String.backSpace()) {
+                if (line.length() > 0){
+                    do line.eraseLastChar();
+                    do Output.backSpace();
+                }
             } else {
-                let text = text.append(key)
+                do line.appendChar(key);
             }
         }
+
+        return line; // not necessary logic wise, but without it the compiler will compalin
     }   
 
     /** Displays the message on the screen, reads from the keyboard the entered
@@ -97,29 +96,10 @@ class Keyboard {
      *  and returns its integer value (until the first non-digit character in the
      *  entered text is detected). Also handles user backspaces. */
     function int readInt(String message) {
-        var char digit;
-        var String num;
-
-        do display cursor
-
-        while (true) {
-            let digit = Keyboard.readChar();
-            
-            if (key = newline) {
-                do display newLine;
-                return num;
-            }
-            if (key = backspace) {
-                remove last digit from num;
-                do Output.backspace();
-            } else {
-                if (key not digit) {
-                    // do nothing
-                } else {
-                    let num = num * 10;
-                    let num = num + digit;
-                }
-            }
-        }
+    	var String num;
+    	
+        let num = Keyboard.readLine(message);
+    	
+        return num.intValue();
     }
 }
