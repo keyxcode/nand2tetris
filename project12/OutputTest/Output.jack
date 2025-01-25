@@ -16,14 +16,12 @@
 class Output {
 
     // Character map for displaying characters
-    static Array charMaps, screen;
-    static int curRow, curCol;
-    static int maxRow, maxCol;
+    static Array charMaps;
+    static int curRow, curCol, maxRow, maxCol;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
         do Output.initMap();
-        let screen = 16384;
         let curRow = 0;
         let curCol = 0;
         let maxRow = 22;
@@ -209,7 +207,7 @@ class Output {
                 do Output.moveCursor(curRow, curCol + 1);
             }
         }
-        
+
         return;
     }
 
@@ -240,12 +238,26 @@ class Output {
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        var int i;
+
+        let i = 0;
+        while(i < (s.length())) {
+            do Output.printChar(s.charAt(i));
+            let i = i + 1;
+        }
+
         return;
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+    	var String str;
+    	
+        let str = String.new(6);
+    	do str.setInt(i);
+    	do Output.printString(str);
+    	
         return;
     }
 
