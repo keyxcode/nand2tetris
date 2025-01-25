@@ -58,18 +58,17 @@ class Math {
      *  an an expression, it handles it by invoking this method.
      *  Thus, x/y and Math.divide(x,y) return the same value. */
     function int divide(int x, int y) {
-        var int q, res;
-        var boolean isNeg;
+        var int q, res, isPos;
 
         // handle negative numbers
-        let isNeg = false;
+        let isPos = 1;
         if (x < 0) {
             let x = -x;
-            let isNeg = ~isNeg;
+            let isPos = -isPos;
         }
         if (y < 0) {
             let y = -y;
-            let isNeg = ~isNeg;
+            let isPos = -isPos;
         }
 
         // base case
@@ -85,10 +84,7 @@ class Math {
             let res = 2 * q + 1;
         }
 
-        if (isNeg = true) {
-            return -res;
-        }
-        return res;
+        return res * isPos;
     }
 
     /** Returns the integer part of the square root of x. */
