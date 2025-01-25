@@ -199,13 +199,43 @@ class Output {
         do Output.drawChar(c);
 
         // advance cursor
-
+        if((curCol = maxCol) & (curRow = maxRow)) {
+            do Output.moveCursor(0, 0);
+        }else{
+            // Move to next line if at end of line
+            if(curCol = maxCol){
+                do Output.moveCursor(curRow + 1, 0);
+            }else {
+                do Output.moveCursor(curRow, curCol + 1);
+            }
+        }
+        
         return;
     }
 
+    /* Helper function that handles drawing a char pixel by pixel */
     function void drawChar(int code) {
+        var Array charBitMap;
+        var int i, j;
+        
+        let charBitMap = Output.getMap(code);
+        let i = 0;
+        let j = 0;
+
+        while(i < 11) {
+            while(j < 8) {
+                if (Math.isBitSet(charBitMap[i], j)) {
+                    do Screen.setColor(true);
+                    do Screen.drawPixel(((8 * curCol) + j), ((11 * curRow) + i));
+                }                
+                let j = j + 1;
+            }
+            let j = 0;
+            let i = i + 1;
+        }
+
         return;
-    } 
+    }
 
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
