@@ -82,6 +82,31 @@ class String {
 
     /** Sets this string to hold a representation of the given value. */
     method void setInt(int val) {
+    	let len = 0;
+    	
+        if (val < 0) { // neg
+            do appendChar(45);
+            let val = -val;
+        }
+        
+        do recSetInt(val);
+
+    	return;
+    }
+
+    /* This helper function helps deal with the fact that we have to append the last digit first in the string, without the use of a built-in stack data structure. */
+    method void recSetInt(int val) {
+        var int digit, c;
+
+        if (val = 0) {
+            return;
+        }
+
+        let digit = val - ((val / 10) * 10);
+        let c = digit + 48;
+        do recSetInt(val / 10);
+        do appendChar(c);
+
         return;
     }
 
