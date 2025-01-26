@@ -43,7 +43,19 @@ class Screen {
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
-        return;
+    	var int word, mask;
+    	
+        let word = (32 * y) + (x / 16);
+        // bit mask that has only the ith bit that we want to draw set
+    	let mask = Math.powerOfTwo(Math.mod(x, 16));
+    	
+        if (color) {
+    		let screen[word] = screen[word] | mask;
+    	} else {
+    		let screen[word] = screen[word] & (~mask);
+		}
+
+    	return;
     }
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
