@@ -138,4 +138,10 @@ class Math {
 
         return x;
     }
+
+    /** Helper function to let the outside world use powers of two */
+    function int powerOfTwo(int n) {
+        return powersOfTwo[n];
+    }
+
 }
