@@ -19,6 +19,8 @@ class Screen {
         let maxRow = 256;
         let maxCol = 512;
         let screen = 16384;
+        
+        return;
     }
 
     /** Erases the entire screen. */
@@ -60,7 +62,68 @@ class Screen {
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
-        return;
+        var int dx, dy, down, right, diff;
+
+        let down = 0;
+        let right = 0;
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let diff = 0;
+
+        if (dx < 0) { // swap points recursively if x1 < x2
+            do Screen.drawLine(x2, y2, x1, y1);
+            return;
+        }
+
+        if(dy = 0) { // horizontal
+            while (x1 < x2) {
+                do Screen.drawPixel(x1, y1);
+                let x1 = x1 + 1;
+            }
+            return;
+        }
+        
+        if (dx = 0) { // vertical
+            while (y1 > y2) { // s -> n 
+                do Screen.drawPixel(x1, y1);
+                let y1 = y1 - 1;
+            }
+            while (y1 < y2) { // n -> s
+                do Screen.drawPixel(x1, y1);
+                let y1 = y1 + 1;
+            }
+            return;
+        }
+
+        if (dy < 0) { // sw -> ne
+            let dy = Math.abs(dy);
+            while ((~(right > dx)) & (~(down > dy))) {
+                do Screen.drawPixel(x1 + right, y1 - down);
+                
+                if (diff < 0) {
+                    let down = down + 1;
+                    let diff = diff + dx;
+                } else {
+                    let right = right + 1;
+                    let diff = diff - dy;
+                }
+            }
+            return;
+        }
+
+        while ((~(right > dx)) & (~(down > dy))) { // nw -> se
+            do Screen.drawPixel(x1 + right, y1 + down);
+            
+            if (diff < 0) {
+                let down = down + 1;
+                let diff = diff + dx;
+            } else {
+                let right = right + 1;
+                let diff = diff - dy;
+            }
+        }
+
+        return; 
     }
 
     /** Draws a filled rectangle whose top left corner is (x1, y1)
