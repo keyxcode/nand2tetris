@@ -144,4 +144,10 @@ class Math {
         return powersOfTwo[n];
     }
 
+    /** Returns x mod y */
+	function int mod(int x, int y) {
+		let x = Math.abs(x);
+		return x - (Math.divide(x, y) * y);
+	}
+
 }
